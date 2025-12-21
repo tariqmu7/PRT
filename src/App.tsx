@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
-  getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, 
-  updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp 
+  getFirestore, collection, doc, setDoc, addDoc, 
+  query, onSnapshot, serverTimestamp 
 } from 'firebase/firestore';
 import { 
-  getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken 
+  getAuth, signInAnonymously, onAuthStateChanged
 } from 'firebase/auth';
 import { 
   Shield, Users, FileText, Settings as SettingsIcon, LogOut, Plus, Trash2, 
-  Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, 
-  AlertTriangle, Upload, Download, Eye, RefreshCw
+  Save, CheckCircle, Clock, ChevronLeft, ChevronRight, 
+  RefreshCw
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
+
+// YOUR REAL FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDAU3qUSdj97I08ga6byIoFQb_pf0b3EeI",
   authDomain: "e-i-b-e-p-r-o-mideabank-muwplu.firebaseapp.com",
@@ -22,6 +24,13 @@ const firebaseConfig = {
   messagingSenderId: "567962116529",
   appId: "1:567962116529:web:e70eb712555bc6c9175d90"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = "exam-app-v1";
+
 // --- Types ---
 type Question = {
   id: string;
@@ -59,7 +68,7 @@ type StudentResult = {
   timestamp: any;
 };
 
-// --- Default Data (From User's Word Doc) ---
+// --- Default Data ---
 const DEFAULT_QUESTIONS_DATA = [
   { id: '1', text: "“Health” in occupational health refers mainly to:", options: ["Preventing physical injuries only", "Avoiding all exposure to chemicals at work", "Promoting complete physical, mental, and social well-being", "Ensuring workers are medically fit for employment"], correctIndex: 2 },
   { id: '2', text: "Which example best represents a psychosocial hazard?", options: ["Excessive heat exposure inside a unit", "High noise levels near compressors", "Harassment, overwhelming workload, or job insecurity", "Use of defective lifting equipment"], correctIndex: 2 },
@@ -351,13 +360,11 @@ export default function App() {
   // Auth Init
   useEffect(() => {
     const initAuth = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
+      // We just sign in anonymously for the public app
+      await signInAnonymously(auth);
     };
     initAuth();
+    
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsubscribe();
   }, []);
@@ -366,7 +373,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     
-    // Fetch Settings - UPDATED PATH: config/settings (even number of segments)
+    // Fetch Settings
     const unsubSettings = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), (docSnap) => {
       if (docSnap.exists()) {
         setSettings(docSnap.data() as AppSettings);
@@ -458,7 +465,7 @@ export default function App() {
       });
     }
     
-    // Save Default Settings - UPDATED PATH
+    // Save Default Settings
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), DEFAULT_SETTINGS);
     
     alert("Database Initialized Successfully!");
@@ -639,25 +646,25 @@ export default function App() {
                    <div>
                      <label className="block text-sm font-medium">Timer (Minutes)</label>
                      <input 
-                        type="number" 
-                        value={settings.timerMinutes} 
-                        onChange={(e) => setSettings({...settings, timerMinutes: parseInt(e.target.value)})}
-                        className="w-full border p-2 rounded mt-1" 
+                       type="number" 
+                       value={settings.timerMinutes} 
+                       onChange={(e) => setSettings({...settings, timerMinutes: parseInt(e.target.value)})}
+                       className="w-full border p-2 rounded mt-1" 
                      />
                    </div>
                    <div>
                      <label className="block text-sm font-medium">Passing Score (%)</label>
                      <input 
-                        type="number" 
-                        value={settings.passScore}
-                        onChange={(e) => setSettings({...settings, passScore: parseInt(e.target.value)})}
-                        className="w-full border p-2 rounded mt-1" 
+                       type="number" 
+                       value={settings.passScore}
+                       onChange={(e) => setSettings({...settings, passScore: parseInt(e.target.value)})}
+                       className="w-full border p-2 rounded mt-1" 
                      />
                    </div>
                  </div>
                  <button 
-                    onClick={() => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), settings)}
-                    className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                   onClick={() => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), settings)}
+                   className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
                  >
                    <Save size={16} /> Save Changes
                  </button>
@@ -688,9 +695,9 @@ export default function App() {
                           }}
                           className="border p-1 rounded text-sm"
                        >
-                         <option value="text">Text</option>
-                         <option value="number">Number</option>
-                         <option value="select">Dropdown</option>
+                          <option value="text">Text</option>
+                          <option value="number">Number</option>
+                          <option value="select">Dropdown</option>
                        </select>
                        <button 
                           onClick={() => {
@@ -699,17 +706,17 @@ export default function App() {
                           }}
                           className="text-red-500 hover:text-red-700"
                        >
-                         <Trash2 size={16} />
+                          <Trash2 size={16} />
                        </button>
                      </div>
                    ))}
                  </div>
                  <button 
-                    onClick={() => setSettings({
-                      ...settings, 
-                      studentFields: [...settings.studentFields, { id: Date.now().toString(), label: 'New Field', type: 'text', required: true }]
-                    })}
-                    className="text-blue-600 text-sm hover:underline flex items-center gap-1"
+                   onClick={() => setSettings({
+                     ...settings, 
+                     studentFields: [...settings.studentFields, { id: Date.now().toString(), label: 'New Field', type: 'text', required: true }]
+                   })}
+                   className="text-blue-600 text-sm hover:underline flex items-center gap-1"
                  >
                    <Plus size={14} /> Add Field
                  </button>

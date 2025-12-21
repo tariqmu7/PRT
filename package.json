@@ -1,6 +1,6 @@
 {
   "name": "tests",
-  "homepage": "[https://tariqmu7.github.io/PRT/](https://tariqmu7.github.io/PRT/)",
+  "homepage": "https://tariqmu7.github.io/PRT/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
