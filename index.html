@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="color-scheme: light;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -7,8 +7,23 @@
     <title>Competence Exam App</title>
     <!-- Tailwind CSS via CDN (Quick Fix for Styling) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Force Tailwind to ignore system dark mode settings
+      tailwind.config = {
+        darkMode: 'class', 
+      }
+    </script>
+    <!-- Custom Layout Styles -->
+    <style>
+      #root {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2rem;
+        text-align: center;
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-gray-50 text-gray-900 antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
