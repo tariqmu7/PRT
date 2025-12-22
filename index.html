@@ -102,12 +102,21 @@
         
         function validateUrl() {
             if (SCRIPT_URL.includes('PASTE_YOUR')) {
-                showToast('Please paste your Web App URL in the code!', true);
+                // If the user hasn't updated the URL, show an error in the list area
+                const list = document.getElementById('namesList');
+                if(list) {
+                    list.innerHTML = `
+                    <div class="text-center py-4 px-2 text-red-500">
+                        <p class="font-bold">Setup Required</p>
+                        <p class="text-xs mt-2 text-gray-600">Please edit the code and paste your Google Script URL.</p>
+                    </div>`;
+                }
+                alert("Please paste your Google Web App URL in the code (Line ~113)!");
                 return false;
             }
             if (!SCRIPT_URL.includes('/s/') || !SCRIPT_URL.includes('/exec')) {
-                console.error("Invalid URL detected. You likely used a Library URL instead of a Web App URL.");
-                alert("Incorrect URL Format:\n\nThe URL you pasted seems to be a 'Library' or 'Edit' URL.\n\nPlease go to Deploy > Manage Deployments in Apps Script and copy the 'Web App' URL ending in '/exec'.");
+                console.error("Invalid URL detected.");
+                alert("Incorrect URL Format:\n\nPlease use the 'Web App' URL ending in '/exec'.");
                 return false;
             }
             return true;
@@ -168,17 +177,15 @@
 
             try {
                 // FIXED: Use 'no-cors' to avoid browser blocking the Google redirect
-                // Note: In no-cors mode, we cannot read the response JSON. We assume success if it doesn't throw.
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     headers: {
-                        'Content-Type': 'text/plain' // text/plain prevents CORS preflight
+                        'Content-Type': 'text/plain' 
                     },
                     body: JSON.stringify({ name: name })
                 });
                 
-                // Since we can't read the response in no-cors, we assume it worked.
                 showToast('Saved to Google Sheet!');
                 input.value = ''; 
 
@@ -198,8 +205,11 @@
             list.innerHTML = '<div class="text-center py-4 text-gray-500"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
             try {
-                // Add timestamp to prevent caching
-                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
+                // FIXED: Added credentials: 'omit' to prevent cookie conflicts
+                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`, {
+                    method: 'GET',
+                    credentials: 'omit'
+                });
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -240,9 +250,14 @@
 
             } catch (error) {
                 console.error(error);
-                list.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">
-                    <p class="font-bold">Failed to load data</p>
-                    <p class="text-xs mt-1">Check your URL or Deployment permissions</p>
+                list.innerHTML = `
+                <div class="text-center py-4 px-2">
+                    <div class="text-red-500 mb-2"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+                    <p class="text-gray-800 font-semibold text-sm">Connection Failed</p>
+                    <p class="text-xs text-gray-500 mt-1 mb-3">Check "Who has access" is "Anyone"</p>
+                    <a href="${SCRIPT_URL}" target="_blank" class="inline-block bg-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full hover:bg-blue-200 transition">
+                        Test URL
+                    </a>
                 </div>`;
             }
         }
