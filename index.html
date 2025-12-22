@@ -3,270 +3,756 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Name Keeper</title>
+    <title>TestMaster Platform</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SheetJS for Excel Processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.css"></script>
+    <scriptscript src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+        .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen text-slate-800">
 
-    <!-- Main Container -->
-    <div class="glass rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative min-h-[500px]">
+    <!-- APP CONTAINER -->
+    <div id="app" class="min-h-screen flex flex-col">
         
-        <!-- Header -->
-        <div class="bg-slate-900 text-white p-6 text-center">
-            <h1 class="text-2xl font-bold">Sheet Database</h1>
-            <p class="text-slate-400 text-sm">Serverless Google Sheets App</p>
-        </div>
+        <!-- Navbar -->
+        <nav class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="router('home')">
+                    <i class="fas fa-graduation-cap text-2xl text-blue-400"></i>
+                    <span class="font-bold text-xl tracking-tight">TestMaster</span>
+                </div>
+                <div id="nav-links" class="flex gap-4 text-sm font-medium">
+                    <!-- Dynamic Links Injected Here -->
+                </div>
+            </div>
+        </nav>
 
-        <!-- Navigation Tabs -->
-        <div class="flex border-b border-gray-200">
-            <button onclick="switchTab('write')" id="tab-write" class="flex-1 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600 transition-colors bg-blue-50">
-                <i class="fas fa-paper-plane mr-2"></i> Send Name
-            </button>
-            <button onclick="switchTab('read')" id="tab-read" class="flex-1 py-4 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                <i class="fas fa-list mr-2"></i> View List
-            </button>
-        </div>
-
-        <!-- Content Area -->
-        <div class="p-6">
+        <!-- MAIN CONTENT -->
+        <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full relative">
             
-            <!-- WRITE SECTION -->
-            <div id="view-write" class="space-y-6">
-                <div class="text-center space-y-2">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
-                        <i class="fas fa-user-plus text-xl"></i>
-                    </div>
-                    <h2 class="text-xl font-semibold text-gray-800">Add a New Name</h2>
-                    <p class="text-gray-500 text-sm">This will save directly to your Google Sheet.</p>
+            <!-- NOTIFICATIONS -->
+            <div id="toast" class="fixed bottom-5 right-5 z-50 transform transition-all duration-300 translate-y-20 opacity-0">
+                <div class="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3">
+                    <i class="fas fa-info-circle text-blue-400" id="toast-icon"></i>
+                    <span id="toast-msg">Message</span>
                 </div>
+            </div>
 
-                <form id="nameForm" onsubmit="submitName(event)" class="space-y-4">
+            <!-- VIEW: LOGIN -->
+            <section id="view-login" class="hidden h-[80vh] flex items-center justify-center">
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-slate-900">Admin Login</h2>
+                        <p class="text-slate-500 text-sm mt-1">Access the Test Management Console</p>
+                    </div>
+                    <form onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="adminPass" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md">
+                            Login <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </form>
+                    <p class="text-xs text-center text-gray-400 mt-6">Default: admin123</p>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN DASHBOARD -->
+            <section id="view-admin-dashboard" class="hidden space-y-8 fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input type="text" id="nameInput" required
-                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                            placeholder="Enter name here...">
+                        <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
+                        <p class="text-slate-500">Manage your tests and submissions</p>
                     </div>
-                    <button type="submit" id="submitBtn"
-                        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
-                        <span>Save to Cloud</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </form>
-            </div>
-
-            <!-- READ SECTION -->
-            <div id="view-read" class="hidden h-full flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Database Records</h2>
-                    <button onclick="fetchNames()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    <button onclick="router('create-test')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2 transition-transform hover:-translate-y-0.5">
+                        <i class="fas fa-plus"></i> Create New Test
                     </button>
                 </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Active Tests</p>
+                                <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-tests">-</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-file-alt text-xl"></i></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Total Submissions</p>
+                                <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-subs">-</h3>
+                            </div>
+                            <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-users text-xl"></i></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:bg-slate-50 transition" onclick="showSettingsModal()">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Settings</p>
+                                <h3 class="text-lg font-bold text-slate-800 mt-2">Change Password</h3>
+                            </div>
+                            <div class="p-3 bg-purple-50 text-purple-600 rounded-lg"><i class="fas fa-cog text-xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tests List -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <h3 class="font-semibold text-gray-800">Your Tests</h3>
+                        <button onclick="fetchTests()" class="text-sm text-blue-600 hover:text-blue-800"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="px-6 py-3">Title</th>
+                                    <th class="px-6 py-3">Created</th>
+                                    <th class="px-6 py-3">Status</th>
+                                    <th class="px-6 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tests-table-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Tests Injected Here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="tests-loading" class="text-center py-8 text-gray-400 hidden">
+                        <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: UPLOAD & MAP -->
+            <section id="view-create-test" class="hidden max-w-3xl mx-auto fade-in">
+                <button onclick="router('admin-dashboard')" class="text-gray-500 hover:text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
                 
-                <!-- List Container -->
-                <div id="namesList" class="flex-1 overflow-y-auto max-h-[300px] space-y-2 pr-1">
-                    <!-- Loading State -->
-                    <div class="text-center py-8 text-gray-400">
-                        <i class="fas fa-cloud-download-alt text-3xl mb-2"></i>
-                        <p>Click refresh to load data</p>
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="p-8 border-b border-gray-100">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Create New Test</h2>
+                        
+                        <!-- Step 1: Upload -->
+                        <div id="step-upload" class="space-y-6">
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:bg-gray-50 transition cursor-pointer relative" onclick="document.getElementById('fileInput').click()">
+                                <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-4"></i>
+                                <h3 class="font-medium text-gray-900">Click to upload Excel File</h3>
+                                <p class="text-sm text-gray-500 mt-1">Support .xlsx, .csv (Max 5MB)</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Mapping -->
+                        <div id="step-mapping" class="hidden space-y-6">
+                            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-6">
+                                <i class="fas fa-info-circle mr-2"></i> File loaded! Now map your columns.
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Test Title</label>
+                                    <input type="text" id="testTitle" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Minutes)</label>
+                                    <input type="number" id="testDuration" value="30" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Question Column</label>
+                                    <select id="map-question" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Answer Column</label>
+                                    <select id="map-answer" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Option Columns (Multiple)</label>
+                                <div id="map-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <!-- Checkboxes generated here -->
+                                </div>
+                            </div>
+                            
+                            <div class="pt-4">
+                                <button onclick="uploadAndCreate()" id="btn-create" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-all">
+                                    Create Test & Save to Cloud
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Status Toast -->
-        <div id="toast" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 text-sm pointer-events-none flex items-center gap-2">
-            <i class="fas fa-info-circle"></i>
-            <span id="toastMsg">Notification</span>
-        </div>
+            </section>
 
+            <!-- VIEW: CANDIDATE INTRO -->
+            <section id="view-test-intro" class="hidden max-w-2xl mx-auto text-center fade-in mt-10">
+                <div class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 text-3xl">
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2" id="intro-title">Loading...</h1>
+                    <p class="text-gray-500 mb-8" id="intro-desc">Please wait while we load the test details.</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto mb-8 text-left">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-xs text-gray-500 uppercase font-bold">Duration</span>
+                            <p class="text-lg font-semibold text-gray-800"><span id="intro-duration">-</span> Mins</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-xs text-gray-500 uppercase font-bold">Questions</span>
+                            <p class="text-lg font-semibold text-gray-800" id="intro-qcount">-</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-left max-w-md mx-auto">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="candidateName" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="candidateEmail" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="john@example.com">
+                        </div>
+                        <button onclick="startTest()" id="btn-start" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg transition-transform hover:-translate-y-1 mt-4">
+                            Start Assessment
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: TEST TAKING -->
+            <section id="view-test-active" class="hidden max-w-4xl mx-auto fade-in">
+                <!-- Header with Timer -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex justify-between items-center sticky top-20 z-40">
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-500 text-sm">Question <span id="q-current">1</span> of <span id="q-total">10</span></span>
+                        <div class="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono font-bold text-lg text-slate-800 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
+                        <i class="far fa-clock text-blue-600"></i>
+                        <span id="timer">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Question Container -->
+                <div id="question-container" class="space-y-6 pb-20">
+                    <!-- Questions injected here -->
+                </div>
+
+                <!-- Footer -->
+                <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg z-50">
+                    <div class="max-w-4xl mx-auto flex justify-end">
+                        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors">
+                            Submit Assessment <i class="fas fa-check ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: RESULTS -->
+            <section id="view-result" class="hidden max-w-md mx-auto text-center fade-in mt-10">
+                <div class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+                    <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 text-5xl animate-bounce">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">Assessment Complete</h2>
+                    <p class="text-gray-500 mb-8">Thank you for your submission.</p>
+                    
+                    <div class="bg-slate-900 text-white p-6 rounded-xl mb-8">
+                        <span class="text-sm text-slate-400 uppercase tracking-wider">Your Score</span>
+                        <div class="text-5xl font-bold mt-2"><span id="result-score">0</span><span class="text-2xl text-slate-500">/</span><span id="result-total" class="text-2xl text-slate-500">0</span></div>
+                    </div>
+                    
+                    <button onclick="window.location.reload()" class="text-blue-600 hover:text-blue-800 font-medium">Back to Home</button>
+                </div>
+            </section>
+
+        </main>
     </div>
 
+    <!-- SETTINGS MODAL -->
+    <div id="modal-settings" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[60] flex items-center justify-center">
+        <div class="bg-white p-6 rounded-xl w-full max-w-sm m-4">
+            <h3 class="text-lg font-bold mb-4">Change Password</h3>
+            <div class="space-y-3">
+                <input type="password" id="set-old-pass" placeholder="Current Password" class="w-full border p-2 rounded">
+                <input type="password" id="set-new-pass" placeholder="New Password" class="w-full border p-2 rounded">
+                <div class="flex justify-end gap-2 mt-4">
+                    <button onclick="document.getElementById('modal-settings').classList.add('hidden')" class="px-4 py-2 text-gray-500">Cancel</button>
+                    <button onclick="changePassword()" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         // ==========================================
-        // ⚠️ CONFIGURATION: PASTE YOUR URL HERE
+        // ⚠️ PASTE YOUR NEW WEB APP URL HERE
         // ==========================================
-        // MAKE SURE THE URL ENDS WITH '/exec' AND CONTAINS '/s/'
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGsrmdxKo8I_3hfvVmHDErWYO0si9dwCgaMFk8yX_ei-rUUENqcBcpmNMP0e8wMywd/exec'; 
-        
-        function validateUrl() {
-            if (SCRIPT_URL.includes('PASTE_YOUR')) {
-                // If the user hasn't updated the URL, show an error in the list area
-                const list = document.getElementById('namesList');
-                if(list) {
-                    list.innerHTML = `
-                    <div class="text-center py-4 px-2 text-red-500">
-                        <p class="font-bold">Setup Required</p>
-                        <p class="text-xs mt-2 text-gray-600">Please edit the code and paste your Google Script URL.</p>
-                    </div>`;
-                }
-                alert("Please paste your Google Web App URL in the code (Line ~113)!");
-                return false;
-            }
-            if (!SCRIPT_URL.includes('/s/') || !SCRIPT_URL.includes('/exec')) {
-                console.error("Invalid URL detected.");
-                alert("Incorrect URL Format:\n\nPlease use the 'Web App' URL ending in '/exec'.");
-                return false;
-            }
-            return true;
-        }
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwnwAvHRVdWJ0RkVuMiHeRIkUO2FJNNhIDMnPZGORldYNPfdtRaYCcIGkBbbMJQWFQ-/exec'; 
 
-        function switchTab(tab) {
-            // UI Toggle logic
-            const writeView = document.getElementById('view-write');
-            const readView = document.getElementById('view-read');
-            const writeTab = document.getElementById('tab-write');
-            const readTab = document.getElementById('tab-read');
+        // STATE
+        let currentUser = null;
+        let currentExcelData = null; // Holds parsed Excel headers/rows
+        let currentTest = null;
+        let userAnswers = {};
+        let testTimerInterval = null;
 
-            if (tab === 'write') {
-                writeView.classList.remove('hidden');
-                readView.classList.add('hidden');
-                
-                writeTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
-                writeTab.classList.remove('text-gray-500');
-                
-                readTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
-                readTab.classList.add('text-gray-500');
-            } else {
-                writeView.classList.add('hidden');
-                readView.classList.remove('hidden');
-                
-                readTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
-                readTab.classList.remove('text-gray-500');
-                
-                writeTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
-                writeTab.classList.add('text-gray-500');
-                
-                fetchNames(); // Auto fetch when switching to read
-            }
-        }
-
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toastMsg');
-            toast.style.backgroundColor = isError ? '#ef4444' : '#1e293b';
-            msg.textContent = message;
-            toast.classList.remove('opacity-0');
-            setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        }
-
-        // --- API FUNCTIONS ---
-
-        async function submitName(e) {
-            e.preventDefault();
-            if (!validateUrl()) return;
-
-            const input = document.getElementById('nameInput');
-            const btn = document.getElementById('submitBtn');
-            const name = input.value;
-
-            // UI Loading state
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-            try {
-                // FIXED: Use 'no-cors' to avoid browser blocking the Google redirect
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: {
-                        'Content-Type': 'text/plain' 
-                    },
-                    body: JSON.stringify({ name: name })
-                });
-                
-                showToast('Saved to Google Sheet!');
-                input.value = ''; 
-
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Connection error', true);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<span>Save to Cloud</span><i class="fas fa-arrow-right"></i>';
-            }
-        }
-
-        async function fetchNames() {
-            if (!validateUrl()) return;
+        // --- ROUTER ---
+        function init() {
+            // Check for test ID in URL
+            const params = new URLSearchParams(window.location.search);
+            const testId = params.get('test');
             
-            const list = document.getElementById('namesList');
-            list.innerHTML = '<div class="text-center py-4 text-gray-500"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+            if (testId) {
+                loadTest(testId);
+            } else {
+                router('home');
+            }
+        }
 
-            try {
-                // FIXED: Simplified fetch. 
-                // IMPORTANT: If this fails, it's 99% likely because "Who has access" is not set to "Anyone"
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'GET',
-                    redirect: 'follow'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        function router(viewName) {
+            // Hide all views
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            
+            // Logic for specific views
+            if (viewName === 'home') {
+                if (currentUser) {
+                    router('admin-dashboard');
+                } else {
+                    document.getElementById('view-login').classList.remove('hidden');
                 }
+            } 
+            else if (viewName === 'admin-dashboard') {
+                if (!currentUser) return router('home');
+                document.getElementById('view-admin-dashboard').classList.remove('hidden');
+                fetchTests();
+            }
+            else if (viewName === 'create-test') {
+                document.getElementById('view-create-test').classList.remove('hidden');
+            }
+            else {
+                const el = document.getElementById(`view-${viewName}`);
+                if (el) el.classList.remove('hidden');
+            }
+        }
 
-                const data = await response.json(); 
+        // --- AUTH ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('adminPass').value;
+            showToast('Verifying...');
+            
+            try {
+                const res = await callApi({ action: 'login', password: pass });
+                if (res.result === 'success') {
+                    currentUser = 'ADMIN';
+                    showToast('Welcome back, Admin!');
+                    router('admin-dashboard');
+                    updateNav();
+                } else {
+                    showToast('Invalid Password', true);
+                }
+            } catch (err) {
+                showToast('Login failed', true);
+            }
+        }
+
+        function updateNav() {
+            const nav = document.getElementById('nav-links');
+            if (currentUser) {
+                nav.innerHTML = `<button onclick="logout()" class="text-gray-300 hover:text-white">Logout</button>`;
+            } else {
+                nav.innerHTML = '';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            router('home');
+            updateNav();
+        }
+
+        // --- EXCEL PARSING ---
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 
-                list.innerHTML = '';
+                // Convert to JSON (Header: 1 returns array of arrays)
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
                 
-                if (!data || data.length === 0) {
-                    list.innerHTML = '<div class="text-center py-4 text-gray-400">No records found</div>';
+                if (jsonData.length < 2) {
+                    showToast('File is empty or invalid', true);
                     return;
                 }
 
-                // Reverse loop to show newest first
-                for (let i = data.length - 1; i >= 0; i--) {
-                    const row = data[i];
-                    // row[0] is Name, row[1] is Date
-                    const name = row[0]; 
-                    const dateRaw = row[1] ? new Date(row[1]) : new Date();
-                    const dateStr = dateRaw.toLocaleDateString() + ' ' + dateRaw.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                currentExcelData = jsonData;
+                showMappingUI(jsonData[0]); // Pass headers
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
-                    if(!name) continue;
+        function showMappingUI(headers) {
+            document.getElementById('step-upload').classList.add('hidden');
+            document.getElementById('step-mapping').classList.remove('hidden');
+            
+            const qSelect = document.getElementById('map-question');
+            const aSelect = document.getElementById('map-answer');
+            const optDiv = document.getElementById('map-options');
+            
+            qSelect.innerHTML = '';
+            aSelect.innerHTML = '';
+            optDiv.innerHTML = '';
+            
+            headers.forEach((h, index) => {
+                const option = `<option value="${index}">${h}</option>`;
+                qSelect.innerHTML += option;
+                aSelect.innerHTML += option;
+                
+                optDiv.innerHTML += `
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="opt-check rounded text-blue-600" value="${index}">
+                        <span class="truncate" title="${h}">${h}</span>
+                    </label>
+                `;
+            });
+            
+            // Auto-guess columns
+            headers.forEach((h, i) => {
+                const lower = h.toString().toLowerCase();
+                if (lower.includes('question')) qSelect.value = i;
+                if (lower.includes('answer') || lower.includes('correct')) aSelect.value = i;
+            });
+        }
 
-                    const card = document.createElement('div');
-                    card.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow';
-                    card.innerHTML = `
-                        <div>
-                            <p class="font-semibold text-gray-800">${name}</p>
-                            <p class="text-xs text-gray-400">${dateStr}</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    `;
-                    list.appendChild(card);
-                }
+        async function uploadAndCreate() {
+            const btn = document.getElementById('btn-create');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            btn.disabled = true;
+            
+            // 1. Get Mapping
+            const mapping = {
+                questionIndex: parseInt(document.getElementById('map-question').value),
+                answerIndex: parseInt(document.getElementById('map-answer').value),
+                optionsIndices: Array.from(document.querySelectorAll('.opt-check:checked')).map(cb => parseInt(cb.value))
+            };
+            
+            if (mapping.optionsIndices.length === 0) {
+                showToast('Please select at least one option column', true);
+                btn.innerHTML = 'Create Test';
+                btn.disabled = false;
+                return;
+            }
 
-            } catch (error) {
-                console.error(error);
-                list.innerHTML = `
-                <div class="text-center py-4 px-4 bg-red-50 rounded-lg border border-red-100 mx-2">
-                    <div class="text-red-500 mb-2"><i class="fas fa-lock text-2xl"></i></div>
-                    <p class="text-red-800 font-bold text-sm mb-1">Access Denied</p>
-                    <p class="text-xs text-red-600 mb-3 leading-relaxed">
-                        The app cannot read the data. This happens if the Google Script permission is not set to "Anyone".
-                    </p>
-                    <a href="${SCRIPT_URL}" target="_blank" class="inline-flex items-center justify-center bg-red-100 text-red-700 text-xs font-semibold px-4 py-2 rounded-lg hover:bg-red-200 transition mb-2 w-full">
-                        <i class="fas fa-external-link-alt mr-2"></i> Test Link in New Tab
-                    </a>
-                    <p class="text-[10px] text-gray-500">
-                        <strong>Fix:</strong> Go to Apps Script > Deploy > Manage Deployments > Edit > Who has access: <strong>Anyone</strong>
-                    </p>
-                </div>`;
+            try {
+                // 2. Upload Data to create new Sheet
+                showToast('Creating Database Sheet...');
+                const uploadRes = await callApi({
+                    action: 'upload_data',
+                    fileName: document.getElementById('fileInput').files[0].name,
+                    rows: currentExcelData
+                });
+                
+                // 3. Create Test Record
+                showToast('Configuring Test...');
+                const createRes = await callApi({
+                    action: 'create_test',
+                    title: document.getElementById('testTitle').value || 'Untitled Test',
+                    description: 'Generated from Excel',
+                    duration: document.getElementById('testDuration').value,
+                    sourceSheetId: uploadRes.sheetId,
+                    mapping: mapping
+                });
+                
+                showToast('Success! Test Created.');
+                router('admin-dashboard');
+                
+            } catch (err) {
+                console.error(err);
+                showToast('Error creating test', true);
+            } finally {
+                btn.innerHTML = 'Create Test';
+                btn.disabled = false;
             }
         }
+
+        // --- DASHBOARD ---
+        async function fetchTests() {
+            const tbody = document.getElementById('tests-table-body');
+            const loading = document.getElementById('tests-loading');
+            tbody.innerHTML = '';
+            loading.classList.remove('hidden');
+            
+            try {
+                const tests = await callApi({ action: 'get_tests' }, 'GET');
+                loading.classList.add('hidden');
+                
+                document.getElementById('stat-tests').innerText = tests.length;
+                
+                tests.forEach(t => {
+                    const link = window.location.href.split('?')[0] + '?test=' + t.id;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">${t.title}</td>
+                            <td class="px-6 py-4 text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">${t.status}</span></td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="copyLink('${link}')" class="text-blue-600 hover:text-blue-900 text-xs font-bold border border-blue-200 px-3 py-1 rounded-lg hover:bg-blue-50">
+                                    <i class="fas fa-link mr-1"></i> Copy Link
+                                </button>
+                                <button onclick="downloadResults('${t.id}')" class="ml-2 text-gray-500 hover:text-green-600" title="Download Results">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                loading.innerHTML = 'Error loading tests';
+            }
+        }
+
+        async function downloadResults(testId) {
+            showToast('Fetching results...');
+            const results = await callApi({ action: 'get_results', testId: testId });
+            
+            if (results.length === 0) {
+                showToast('No submissions yet', true);
+                return;
+            }
+            
+            // Create Excel
+            const ws = XLSX.utils.json_to_sheet(results);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Submissions");
+            XLSX.writeFile(wb, `Results_${testId}.xlsx`);
+        }
+
+        // --- CANDIDATE FLOW ---
+        async function loadTest(testId) {
+            router('test-intro');
+            try {
+                const res = await callApi({ action: 'get_test_details', id: testId }, 'GET');
+                if (res.error) throw new Error(res.error);
+                
+                currentTest = res;
+                currentTest.id = testId;
+                
+                document.getElementById('intro-title').innerText = res.meta.title;
+                document.getElementById('intro-duration').innerText = res.meta.duration;
+                document.getElementById('intro-qcount').innerText = res.questions.length;
+                
+            } catch (err) {
+                document.getElementById('intro-title').innerText = 'Test Not Found';
+                document.getElementById('intro-desc').innerText = 'The link might be invalid or expired.';
+                document.getElementById('btn-start').classList.add('hidden');
+            }
+        }
+
+        function startTest() {
+            const name = document.getElementById('candidateName').value;
+            if (!name) return showToast('Please enter your name', true);
+            
+            currentTest.candidate = {
+                name: name,
+                email: document.getElementById('candidateEmail').value
+            };
+            
+            renderQuestions();
+            router('test-active');
+            startTimer(currentTest.meta.duration);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('question-container');
+            container.innerHTML = '';
+            document.getElementById('q-total').innerText = currentTest.questions.length;
+            
+            currentTest.questions.forEach((q, index) => {
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    optionsHtml += `
+                        <label class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                            <input type="radio" name="q_${q.id}" value="${opt}" onchange="recordAnswer(${q.id}, '${opt}')" class="h-5 w-5 text-blue-600">
+                            <span class="text-gray-700">${opt}</span>
+                        </label>
+                    `;
+                });
+                
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm" id="q-card-${index}">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4"><span class="text-blue-500 mr-2">Q${index+1}.</span> ${q.text}</h3>
+                        <div class="space-y-3">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function recordAnswer(qId, val) {
+            userAnswers[qId] = val;
+            
+            // Update Progress
+            const total = currentTest.questions.length;
+            const answered = Object.keys(userAnswers).length;
+            const pct = (answered / total) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+        }
+
+        function startTimer(minutes) {
+            let seconds = minutes * 60;
+            const display = document.getElementById('timer');
+            
+            testTimerInterval = setInterval(() => {
+                seconds--;
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                
+                if (seconds <= 300) display.classList.add('text-red-600'); // Warning
+                
+                if (seconds <= 0) {
+                    clearInterval(testTimerInterval);
+                    showToast('Time is up! Submitting...', true);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        async function submitTest() {
+            clearInterval(testTimerInterval);
+            
+            // Calculate Score
+            let score = 0;
+            let total = 0;
+            
+            currentTest.questions.forEach(q => {
+                total += q.points;
+                if (userAnswers[q.id] == q.correctAnswer) {
+                    score += q.points;
+                }
+            });
+            
+            // Submit to Backend
+            try {
+                await callApi({
+                    action: 'submit_test',
+                    testId: currentTest.id,
+                    candidateName: currentTest.candidate.name,
+                    candidateEmail: currentTest.candidate.email,
+                    score: score,
+                    totalPoints: total,
+                    answers: userAnswers
+                });
+                
+                document.getElementById('result-score').innerText = score;
+                document.getElementById('result-total').innerText = total;
+                router('result');
+                
+            } catch (err) {
+                showToast('Error submitting. Please try again.', true);
+            }
+        }
+
+        // --- UTILS ---
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').className = isError ? 'fas fa-exclamation-circle text-red-400' : 'fas fa-info-circle text-blue-400';
+            
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+        
+        function copyLink(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Link copied to clipboard!');
+        }
+
+        async function callApi(data, method = 'POST') {
+            if (API_URL.includes('PASTE_YOUR')) {
+                alert('Please configure the API_URL in the code first!');
+                throw new Error('Config missing');
+            }
+            
+            // For GET requests with GAS, we typically use query params
+            // For POST, we use the body. 
+            // Note: GAS CORS handling is tricky. We use text/plain and no-cors usually,
+            // but for reading data we need cors.
+            
+            const options = {
+                method: method,
+            };
+            
+            let url = API_URL;
+            
+            if (method === 'POST') {
+                options.body = JSON.stringify(data);
+                options.headers = { 'Content-Type': 'text/plain' }; // Avoids Preflight
+            } else {
+                // Convert data object to query string
+                const params = new URLSearchParams(data).toString();
+                url += '?' + params;
+            }
+
+            const res = await fetch(url, options);
+            return await res.json();
+        }
+
+        // --- SETTINGS ---
+        function showSettingsModal() {
+            document.getElementById('modal-settings').classList.remove('hidden');
+        }
+
+        async function changePassword() {
+            const oldP = document.getElementById('set-old-pass').value;
+            const newP = document.getElementById('set-new-pass').value;
+            
+            try {
+                const res = await callApi({ action: 'change_password', oldPassword: oldP, newPassword: newP });
+                if (res.result === 'success') {
+                    showToast('Password changed!');
+                    document.getElementById('modal-settings').classList.add('hidden');
+                } else {
+                    showToast(res.error, true);
+                }
+            } catch (e) { showToast('Error', true); }
+        }
+
+        // Start
+        init();
+
     </script>
 </body>
 </html>
