@@ -10,7 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- SheetJS for Excel Processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.css"></script>
-    <scriptscript src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -53,23 +53,52 @@
                 </div>
             </div>
 
-            <!-- VIEW: LOGIN -->
-            <section id="view-login" class="hidden h-[80vh] flex items-center justify-center">
-                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-                    <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold text-slate-900">Admin Login</h2>
-                        <p class="text-slate-500 text-sm mt-1">Access the Test Management Console</p>
-                    </div>
-                    <form onsubmit="handleLogin(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                            <input type="password" id="adminPass" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+            <!-- VIEW: HOME / LOGIN / CANDIDATE ENTRY -->
+            <section id="view-login" class="hidden h-[85vh] flex items-center justify-center p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+                    
+                    <!-- Admin Side -->
+                    <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 flex flex-col justify-center">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-900">Admin Portal</h2>
+                            <p class="text-slate-500 text-sm mt-1">Login to manage tests & results.</p>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md">
-                            Login <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
-                    </form>
-                    <p class="text-xs text-center text-gray-400 mt-6">Default: admin123</p>
+                        <form onsubmit="handleLogin(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
+                                <div class="relative">
+                                    <input type="password" id="adminPass" class="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="••••••••">
+                                    <i class="fas fa-lock absolute right-4 top-4 text-gray-400"></i>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors shadow-md flex justify-center items-center gap-2">
+                                <span>Login</span> <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </form>
+                        <p class="text-xs text-gray-400 mt-6 pt-6 border-t border-gray-100">Default: admin123</p>
+                    </div>
+
+                    <!-- Candidate Side -->
+                    <div class="bg-blue-600 p-8 rounded-2xl shadow-xl text-white flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+                        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+                        
+                        <div class="relative z-10">
+                            <h2 class="text-2xl font-bold mb-2">Student / Candidate</h2>
+                            <p class="text-blue-100 text-sm mb-8">Enter your Test ID or Paste a Link to begin your assessment.</p>
+                            
+                            <form onsubmit="handleCandidateEntry(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-blue-100 mb-1">Test ID or Link</label>
+                                    <input type="text" id="testIdInput" class="w-full px-4 py-3 rounded-lg border-0 bg-white/20 placeholder-blue-200 text-white focus:ring-2 focus:ring-white outline-none backdrop-blur-sm" placeholder="e.g. 123-abc or https://...">
+                                </div>
+                                <button type="submit" class="w-full bg-white text-blue-600 font-bold py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg">
+                                    Start Assessment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
@@ -238,6 +267,10 @@
                             Start Assessment
                         </button>
                     </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button onclick="router('home')" class="text-sm text-gray-400 hover:text-gray-600">Back to Home</button>
+                    </div>
                 </div>
             </section>
 
@@ -286,7 +319,7 @@
                         <div class="text-5xl font-bold mt-2"><span id="result-score">0</span><span class="text-2xl text-slate-500">/</span><span id="result-total" class="text-2xl text-slate-500">0</span></div>
                     </div>
                     
-                    <button onclick="window.location.reload()" class="text-blue-600 hover:text-blue-800 font-medium">Back to Home</button>
+                    <button onclick="router('home')" class="text-blue-600 hover:text-blue-800 font-medium">Back to Home</button>
                 </div>
             </section>
 
@@ -295,14 +328,20 @@
 
     <!-- SETTINGS MODAL -->
     <div id="modal-settings" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[60] flex items-center justify-center">
-        <div class="bg-white p-6 rounded-xl w-full max-w-sm m-4">
-            <h3 class="text-lg font-bold mb-4">Change Password</h3>
+        <div class="bg-white p-6 rounded-xl w-full max-w-sm m-4 shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 text-blue-600">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3 class="text-lg font-bold">Change Password</h3>
+                <p class="text-sm text-gray-500" id="modal-desc">Secure your account</p>
+            </div>
             <div class="space-y-3">
-                <input type="password" id="set-old-pass" placeholder="Current Password" class="w-full border p-2 rounded">
-                <input type="password" id="set-new-pass" placeholder="New Password" class="w-full border p-2 rounded">
+                <input type="password" id="set-old-pass" placeholder="Current Password" class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="set-new-pass" placeholder="New Password" class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
                 <div class="flex justify-end gap-2 mt-4">
-                    <button onclick="document.getElementById('modal-settings').classList.add('hidden')" class="px-4 py-2 text-gray-500">Cancel</button>
-                    <button onclick="changePassword()" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    <button id="btn-cancel-pass" onclick="document.getElementById('modal-settings').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:text-gray-800">Cancel</button>
+                    <button onclick="changePassword()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow">Save</button>
                 </div>
             </div>
         </div>
@@ -371,8 +410,19 @@
                 const res = await callApi({ action: 'login', password: pass });
                 if (res.result === 'success') {
                     currentUser = 'ADMIN';
-                    showToast('Welcome back, Admin!');
-                    router('admin-dashboard');
+                    
+                    // FORCE CHANGE PASSWORD IF DEFAULT
+                    if (pass === 'admin123') {
+                        showToast('Security Alert: Change Default Password');
+                        // Show modal, prefill old password, hide cancel button
+                        document.getElementById('set-old-pass').value = 'admin123';
+                        document.getElementById('modal-desc').innerText = "For security, you must change the default password.";
+                        document.getElementById('btn-cancel-pass').style.display = 'none'; // Cannot cancel
+                        showSettingsModal();
+                    } else {
+                        showToast('Welcome back, Admin!');
+                        router('admin-dashboard');
+                    }
                     updateNav();
                 } else {
                     showToast('Invalid Password', true);
@@ -382,10 +432,26 @@
             }
         }
 
+        function handleCandidateEntry(e) {
+            e.preventDefault();
+            let input = document.getElementById('testIdInput').value.trim();
+            if(!input) return showToast('Please enter a Test ID', true);
+            
+            // Handle full URL paste
+            if (input.includes('test=')) {
+                try {
+                    const url = new URL(input);
+                    input = url.searchParams.get('test');
+                } catch(e) {}
+            }
+            
+            loadTest(input);
+        }
+
         function updateNav() {
             const nav = document.getElementById('nav-links');
             if (currentUser) {
-                nav.innerHTML = `<button onclick="logout()" class="text-gray-300 hover:text-white">Logout</button>`;
+                nav.innerHTML = `<button onclick="logout()" class="text-gray-300 hover:text-white font-medium">Logout <i class="fas fa-sign-out-alt ml-1"></i></button>`;
             } else {
                 nav.innerHTML = '';
             }
@@ -393,6 +459,8 @@
 
         function logout() {
             currentUser = null;
+            document.getElementById('adminPass').value = '';
+            showToast('Logged out successfully');
             router('home');
             updateNav();
         }
@@ -440,9 +508,9 @@
                 aSelect.innerHTML += option;
                 
                 optDiv.innerHTML += `
-                    <label class="flex items-center space-x-2 text-sm">
+                    <label class="flex items-center space-x-2 text-sm bg-white p-2 rounded border">
                         <input type="checkbox" class="opt-check rounded text-blue-600" value="${index}">
-                        <span class="truncate" title="${h}">${h}</span>
+                        <span class="truncate font-medium" title="${h}">${h}</span>
                     </label>
                 `;
             });
@@ -526,11 +594,14 @@
                             <td class="px-6 py-4 font-medium text-gray-900">${t.title}</td>
                             <td class="px-6 py-4 text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</td>
                             <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">${t.status}</span></td>
-                            <td class="px-6 py-4 text-right">
-                                <button onclick="copyLink('${link}')" class="text-blue-600 hover:text-blue-900 text-xs font-bold border border-blue-200 px-3 py-1 rounded-lg hover:bg-blue-50">
-                                    <i class="fas fa-link mr-1"></i> Copy Link
+                            <td class="px-6 py-4 text-right space-x-2">
+                                <button onclick="window.open('${link}', '_blank')" class="text-purple-600 hover:text-purple-900 text-xs font-bold border border-purple-200 px-3 py-1 rounded-lg hover:bg-purple-50" title="Preview as Candidate">
+                                    <i class="fas fa-eye"></i>
                                 </button>
-                                <button onclick="downloadResults('${t.id}')" class="ml-2 text-gray-500 hover:text-green-600" title="Download Results">
+                                <button onclick="copyLink('${link}')" class="text-blue-600 hover:text-blue-900 text-xs font-bold border border-blue-200 px-3 py-1 rounded-lg hover:bg-blue-50">
+                                    <i class="fas fa-link mr-1"></i> Copy
+                                </button>
+                                <button onclick="downloadResults('${t.id}')" class="text-gray-500 hover:text-green-600 px-2" title="Download Results">
                                     <i class="fas fa-download"></i>
                                 </button>
                             </td>
@@ -732,6 +803,11 @@
 
         // --- SETTINGS ---
         function showSettingsModal() {
+            // If forced, hide cancel
+            if (document.getElementById('btn-cancel-pass').style.display !== 'none') {
+                document.getElementById('set-old-pass').value = '';
+                document.getElementById('modal-desc').innerText = "Secure your account";
+            }
             document.getElementById('modal-settings').classList.remove('hidden');
         }
 
@@ -739,11 +815,19 @@
             const oldP = document.getElementById('set-old-pass').value;
             const newP = document.getElementById('set-new-pass').value;
             
+            if(!oldP || !newP) return showToast('Fill all fields', true);
+
             try {
                 const res = await callApi({ action: 'change_password', oldPassword: oldP, newPassword: newP });
                 if (res.result === 'success') {
                     showToast('Password changed!');
                     document.getElementById('modal-settings').classList.add('hidden');
+                    document.getElementById('btn-cancel-pass').style.display = 'block'; // Reset cancel button for future
+                    
+                    // If this was the first login flow, redirect to dashboard now
+                    if (currentUser === 'ADMIN') {
+                        router('admin-dashboard');
+                    }
                 } else {
                     showToast(res.error, true);
                 }
