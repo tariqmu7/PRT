@@ -1,46 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, collection, doc, setDoc, addDoc, 
-  query, onSnapshot, serverTimestamp 
-} from 'firebase/firestore';
-import { 
-  getAuth, signInAnonymously, onAuthStateChanged
-} from 'firebase/auth';
 import { 
   Shield, Users, FileText, Settings as SettingsIcon, LogOut, Plus, Trash2, 
   Save, CheckCircle, Clock, ChevronLeft, ChevronRight, 
-  RefreshCw, AlertTriangle, ExternalLink
+  RefreshCw, Building2, GraduationCap, AlertTriangle, ExternalLink, Download
 } from 'lucide-react';
-
-// --- Firebase Initialization ---
-
-// YOUR REAL FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyDAU3qUSdj97I08ga6byIoFQb_pf0b3EeI",
-  authDomain: "e-i-b-e-p-r-o-mideabank-muwplu.firebaseapp.com",
-  projectId: "e-i-b-e-p-r-o-mideabank-muwplu",
-  storageBucket: "e-i-b-e-p-r-o-mideabank-muwplu.firebasestorage.app",
-  messagingSenderId: "567962116529",
-  appId: "1:567962116529:web:e70eb712555bc6c9175d90"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = "exam-app-v1";
 
 // --- Types ---
 type Question = {
   id: string;
   text: string;
   options: string[];
-};
-
-type AnswerKey = {
-  id: string;
-  correctIndex: number;
+  correctIndex?: number; // Optional in UI, but present in JSON
 };
 
 type StudentField = {
@@ -62,11 +32,195 @@ type StudentResult = {
   id: string;
   studentData: any;
   answers: Record<string, number>;
-  score?: number; // Calculated on client for display
+  score?: number;
   total?: number;
   passed?: boolean;
-  timestamp: any;
+  timestamp: string; // ISO string for local storage
 };
+
+// --- Default Data (Fallback for when fetch fails in preview mode) ---
+const DEFAULT_QUESTIONS_DATA: Question[] = [
+  { 
+    id: '1', 
+    text: "“Health” in occupational health refers mainly to:", 
+    options: ["Preventing physical injuries only", "Avoiding all exposure to chemicals at work", "Promoting complete physical, mental, and social well-being", "Ensuring workers are medically fit for employment"], 
+    correctIndex: 2
+  },
+  { 
+    id: '2', 
+    text: "Which example best represents a psychosocial hazard?", 
+    options: ["Excessive heat exposure inside a unit", "High noise levels near compressors", "Harassment, overwhelming workload, or job insecurity", "Use of defective lifting equipment"], 
+    correctIndex: 2
+  },
+  { 
+    id: '3', 
+    text: "A strong safety culture in a refinery is built primarily on:", 
+    options: ["Strict punishment for every mistake", "Encouraging reporting, learning, and proactive prevention", "Minimizing communication to avoid confusion", "Relying completely on experienced staff"], 
+    correctIndex: 1
+  },
+  { 
+    id: '4', 
+    text: "The main purpose of the Permit to Work (PTW) system is to:", 
+    options: ["Restrict routine work", "Control non-routine and hazardous work activities", "Approve overtime requests", "Identify skilled workers only"], 
+    correctIndex: 1
+  },
+  { 
+    id: '5', 
+    text: "Which situation requires a Hot Work Permit?", 
+    options: ["Opening a drain valve", "Performing welding inside a tank", "Checking insulation", "Taking a water sample"], 
+    correctIndex: 1
+  },
+  { 
+    id: '6', 
+    text: "A Lockout/Tagout (LOTO) procedure primarily ensures:", 
+    options: ["All tools are clean before use", "Energy sources are isolated and cannot be re-energized", "Workers work faster during shutdown", "Only electrical hazards are controlled"], 
+    correctIndex: 1
+  },
+  { 
+    id: '7', 
+    text: "During LOTO, which of the following is MOST critical?", 
+    options: ["Using new padlocks", "Verifying zero energy after isolation", "Tag color", "Number of workers involved"], 
+    correctIndex: 1
+  },
+  { 
+    id: '8', 
+    text: "H₂S poses the highest danger because:", 
+    options: ["It is non-toxic but flammable", "It causes olfactory fatigue, making smell unreliable", "It is flammable but non-toxic", "It is only found in pipelines"], 
+    correctIndex: 1
+  },
+  { 
+    id: '9', 
+    text: "A worker suddenly collapses in an area known for H₂S. What is the FIRST action?", 
+    options: ["Run in and drag the worker out", "Hold your breath and assist", "Call for help, don SCBA, and only then perform rescue", "Wait until someone else arrives"], 
+    correctIndex: 2
+  },
+  { 
+    id: '10', 
+    text: "Carbon monoxide (CO) is dangerous mainly because it:", 
+    options: ["Has a strong irritating odor", "Displaces oxygen by binding to hemoglobin", "Is usually visible as white gas", "Only occurs in confined spaces"], 
+    correctIndex: 1
+  },
+  { 
+    id: '11', 
+    text: "SO₂ exposure is best described as:", 
+    options: ["A simple asphyxiant non-toxic", "A gas causing respiratory irritation and corrosive effects", "An anesthetic gas", "Physically harmless in small doses"], 
+    correctIndex: 1
+  },
+  { 
+    id: '12', 
+    text: "In hazardous area classification, the primary purpose is to:", 
+    options: ["Calculate explosion overpressure", "Assign appropriate electrical equipment for the gas risk", "Determine PPE rotation", "Identify the best evacuation route"], 
+    correctIndex: 1
+  },
+  { 
+    id: '13', 
+    text: "A refinery unit with continuous presence of flammable vapor under normal operation is typically classified as:", 
+    options: ["Zone 0", "Zone 1", "Zone 2", "Non-classified area"], 
+    correctIndex: 0
+  },
+  { 
+    id: '14', 
+    text: "A difference between Zone 1 and Zone 2 is:", 
+    options: ["Zone 1 is safer than Zone 2", "Zone 2 means flammable gas is not expected during normal operation", "Zone 2 requires ATEX Group IIC always", "Zone 1 does not require explosion-proof equipment"], 
+    correctIndex: 1
+  },
+  { 
+    id: '15', 
+    text: "Which of the following is a chemical hazard?", 
+    options: ["Unprotected machine gears", "Benzene vapors in a pump house", "Working at height", "High-voltage panels"], 
+    correctIndex: 1
+  },
+  { 
+    id: '16', 
+    text: "Which of the following best fits a process safety hazard?", 
+    options: ["A worker slipping on a wet floor", "Failure of a high-pressure reactor leading to major release", "A worker lifting incorrectly", "Sun exposure"], 
+    correctIndex: 1
+  },
+  { 
+    id: '17', 
+    text: "Physical hazard examples include:", 
+    options: ["Flammable gases", "Heat, noise, vibration, and radiation", "Ergonomic strain", "Workload pressure"], 
+    correctIndex: 1
+  },
+  { 
+    id: '18', 
+    text: "LOPA (Layer of Protection Analysis) is used to:", 
+    options: ["Replace detailed risk assessments", "Evaluate the adequacy of independent protection layers", "Approve design drawings", "Eliminate all process risks"], 
+    correctIndex: 1
+  },
+  { 
+    id: '19', 
+    text: "Which of the following is considered an Independent Protection Layer (IPL) in LOPA?", 
+    options: ["Operator experience", "A relief valve with proper design and maintenance", "A checklist", "A warning sign"], 
+    correctIndex: 1
+  },
+  { 
+    id: '20', 
+    text: "A scenario involves a high-pressure vessel that could overpressure. Which combination is MOST consistent with LOPA?", 
+    options: ["“We rely on operator skill only.”", "“We have alarms, interlocks, and a PSV.”", "“We hope it doesn’t happen.”", "“We ignore rare events.”"], 
+    correctIndex: 1
+  },
+  { 
+    id: '21', 
+    text: "A key lesson from the Piper Alpha disaster is:", 
+    options: ["Offshore platforms must be made of concrete", "Poor permit-to-work coordination can escalate catastrophic events", "Gas fires can be extinguished easily", "Evacuation is always safe regardless of fire spread"], 
+    correctIndex: 1
+  },
+  { 
+    id: '22', 
+    text: "Piper Alpha demonstrated the importance of:", 
+    options: ["Perfectly predicting all failures", "Tight control of simultaneous operations and maintenance activities", "Allowing hot work at any time", "Removing all safety valves"], 
+    correctIndex: 1
+  },
+  { 
+    id: '23', 
+    text: "Which failure contributed most to the escalation during Piper Alpha?", 
+    options: ["Strong communication between shifts", "Incomplete isolation and missing blinds during maintenance", "Excessive attention to alarms", "Proper gas detection"], 
+    correctIndex: 1
+  },
+  { 
+    id: '24', 
+    text: "You arrive at a job site with strong solvent odor. Workers say “We think it’s safe.” Your FIRST action is:", 
+    options: ["Proceed with the job", "Continue if you don’t smell anything", "Stop work, assess, and verify atmosphere with proper gas detection", "Open nearby valves to ventilate"], 
+    correctIndex: 2
+  },
+  { 
+    id: '25', 
+    text: "During routine inspection, you see an electrician using a non-Ex rated drill in a Zone 1 area. You should:", 
+    options: ["Ignore it because it’s only temporary", "Allow it if the job is urgent", "Stop the job and explain the hazard before restarting safely", "Ask him to hurry and finish quickly"], 
+    correctIndex: 2
+  },
+  { 
+    id: '26', 
+    text: "You observe two technicians entering a confined space without gas testing. The correct response is:", 
+    options: ["Wait for them to start before stopping them", "Stop them immediately and enforce confined space procedures", "Allow entry if ventilation is running", "Let them enter if the job is simple"], 
+    correctIndex: 1
+  },
+  { 
+    id: '27', 
+    text: "A worker complains of dizziness and headache while working near process burners. Which gas exposure is MOST likely?", 
+    options: ["Oxygen", "Carbon monoxide", "H₂S at 700 ppm concentration", "Argon"], 
+    correctIndex: 1
+  },
+  { 
+    id: '28', 
+    text: "You find a pump with repeated seal leaks. What is the safest action?", 
+    options: ["Increase production to compensate", "Ignore as long as no alarms occur", "Report for maintenance and evaluate for process safety implications", "Place a cloth to absorb leakage"], 
+    correctIndex: 2
+  },
+  { 
+    id: '29', 
+    text: "Oxidative stress in occupational exposure is best described as:", 
+    options: ["A process where antioxidants increase uncontrolled", "Imbalance between oxidants and antioxidants causing DNA damage", "A mechanical failure in body systems", "A short-term irritation only"], 
+    correctIndex: 1
+  },
+  { 
+    id: '30', 
+    text: "Which lifestyle factor can worsen oxidative stress and occupational exposure effects?", 
+    options: ["Balanced diet rich in fruits", "Adequate sleep", "Chronic smoking and poor diet", "Regular physical activity"], 
+    correctIndex: 2
+  }
+];
 
 const DEFAULT_SETTINGS: AppSettings = {
   timerMinutes: 45,
@@ -85,13 +239,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 const HeaderLogo = () => (
   <div className="flex items-center gap-3">
-    {/* Placeholder for EPROM Logo. User should add logo.png to public folder */}
+    {/* Placeholder for EPROM Logo */}
     <img src="/logo.png" alt="EPROM" className="h-12 object-contain" onError={(e) => {
-      // Fallback if image fails
       e.currentTarget.style.display = 'none';
-      document.getElementById('text-logo-fallback')!.style.display = 'flex';
+      const fallback = document.getElementById('text-logo-fallback');
+      if (fallback) fallback.style.display = 'flex';
     }}/>
-    <div id="text-logo-fallback" className="flex flex-col">
+    <div id="text-logo-fallback" className="flex flex-col" style={{display: 'none'}}>
       <span className="text-xl font-black tracking-tight text-blue-900">EPROM</span>
       <span className="text-xs text-gray-500 uppercase tracking-widest">Operation & Maintenance</span>
     </div>
@@ -171,7 +325,7 @@ const StudentRegistration = ({
           <HeaderLogo />
           <div className="mt-20">
             <h1 className="text-5xl font-bold leading-tight mb-6">Competence Assessment Center</h1>
-            <p className="text-xl text-blue-200 max-w-md">Welcome to the official technical competence evaluation portal. Please ensure all details provided are accurate before proceeding.</p>
+            <p className="text-xl text-blue-200 max-w-md">Welcome to the official technical competence evaluation portal.</p>
           </div>
         </div>
         <div className="relative z-10 text-sm text-blue-300">
@@ -182,7 +336,6 @@ const StudentRegistration = ({
       {/* Right Side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 overflow-y-auto">
         <div className="w-full max-w-lg">
-          {/* Mobile Logo */}
           <div className="lg:hidden mb-8 flex justify-center">
             <HeaderLogo />
           </div>
@@ -230,9 +383,6 @@ const StudentRegistration = ({
               <button type="submit" className="w-full text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-lg text-lg px-5 py-4 text-center shadow-lg transform transition hover:-translate-y-1">
                 Begin Assessment
               </button>
-              <p className="text-xs text-center text-gray-400 mt-4">
-                By clicking start, you agree to the exam rules and regulations.
-              </p>
             </div>
           </form>
         </div>
@@ -409,120 +559,79 @@ const ExamInterface = ({
 
 export default function App() {
   const [view, setView] = useState<'student-login' | 'student-exam' | 'student-done' | 'admin-login' | 'admin-dash'>('student-login');
-  const [user, setUser] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [studentData, setStudentData] = useState<any>(null);
-  const [permissionError, setPermissionError] = useState(false);
   
   // Admin State
   const [activeTab, setActiveTab] = useState<'results' | 'questions' | 'settings'>('results');
   const [results, setResults] = useState<StudentResult[]>([]);
   const [secureKeys, setSecureKeys] = useState<Record<string, number>>({});
 
-  // Auth Init
+  // 1. Initial Data Loading (From JSON File)
   useEffect(() => {
-    const initAuth = async () => {
-      // We just sign in anonymously for the public app
-      await signInAnonymously(auth);
-    };
-    initAuth();
-    
-    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsubscribe();
-  }, []);
+    const loadData = async () => {
+      try {
+        // Load Settings from LocalStorage or use Default
+        const savedSettings = localStorage.getItem('exam_settings');
+        if (savedSettings) {
+          setSettings(JSON.parse(savedSettings));
+        }
 
-  // Fetch Settings & Questions (Public)
-  useEffect(() => {
-    if (!user) return;
-    
-    // Fetch Settings
-    const unsubSettings = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), (docSnap) => {
-      if (docSnap.exists()) {
-        setSettings(docSnap.data() as AppSettings);
-      }
-    }, (err: any) => {
-      console.log("Settings fetch err", err);
-      if (err.code === 'permission-denied') setPermissionError(true);
-    });
+        // Load Results from LocalStorage
+        const savedResults = localStorage.getItem('exam_results');
+        if (savedResults) {
+          setResults(JSON.parse(savedResults));
+        }
 
-    // Fetch Public Questions (No Answers)
-    const qQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'questions'));
-    const unsubQs = onSnapshot(qQuery, (snap) => {
-      const qs: Question[] = [];
-      snap.forEach(d => qs.push(d.data() as Question));
-      
-      if (qs.length === 0) {
-        // Fallback: Fetch from public JSON file if DB is empty
-        fetch('/exam_data.json')
-          .then(res => res.json())
-          .then(data => {
-            console.log("Loaded default data from file", data);
-            // Transform data if needed (data includes correctIndex, remove it for public display)
-            // But for local state questions, we usually keep it or strip it.
-            // For security, strictly we should strip it, but for simplicity here we keep it in state
-            // as questions type doesn't strictly forbid it, though interface uses it.
-            // Actually type Question has no correctIndex.
-            const sanitizedQs = data.map(({ correctIndex, ...rest }: any) => rest);
-            setQuestions(sanitizedQs);
-          })
-          .catch(err => console.error("Failed to load default data", err));
-      } else {
-        // Sort by ID to keep order
-        qs.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-        setQuestions(qs);
-      }
-    }, (err: any) => {
-      console.log("Q fetch err", err);
-      if (err.code === 'permission-denied') setPermissionError(true);
-    });
-
-    return () => { unsubSettings(); unsubQs(); };
-  }, [user]);
-
-  // Admin: Fetch Results & Secure Keys
-  useEffect(() => {
-    if (view === 'admin-dash' && user) {
-      // Fetch Keys
-      const kQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'secure_keys'));
-      const unsubKeys = onSnapshot(kQuery, (snap) => {
+        // Load Questions
+        let data: any[] = [];
+        try {
+          const response = await fetch('exam_data.json'); // Try relative without leading slash
+          if (!response.ok) throw new Error("Fetch failed");
+          data = await response.json();
+        } catch (fetchError) {
+          console.warn("Using fallback default data because fetch failed (likely offline/preview mode).", fetchError);
+          data = DEFAULT_QUESTIONS_DATA;
+        }
+        
+        // Extract correct answers for scoring
         const keys: Record<string, number> = {};
-        snap.forEach(d => {
-          const data = d.data() as AnswerKey;
-          keys[data.id] = data.correctIndex;
+        const sanitizedQs = data.map((q: any) => {
+          keys[q.id] = q.correctIndex;
+          return q;
         });
+        
         setSecureKeys(keys);
-      }, (err) => console.log("Key fetch err", err));
+        setQuestions(sanitizedQs);
 
-      // Fetch Submissions
-      const sQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'submissions'));
-      const unsubSubs = onSnapshot(sQuery, (snap) => {
-        const res: StudentResult[] = [];
-        snap.forEach(d => res.push({ id: d.id, ...d.data() } as StudentResult));
-        setResults(res);
-      }, (err) => console.log("Sub fetch err", err));
+      } catch (err) {
+        console.error("Error loading exam data:", err);
+      }
+    };
 
-      return () => { unsubKeys(); unsubSubs(); };
-    }
-  }, [view, user]);
+    loadData();
+  }, []);
 
   const handleStudentStart = (data: any) => {
     setStudentData(data);
     setView('student-exam');
   };
 
-  const handleStudentSubmit = async (answers: Record<string, number>) => {
-    if (!user) return;
-    try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'submissions'), {
-        studentData,
-        answers,
-        timestamp: serverTimestamp()
-      });
-      setView('student-done');
-    } catch (err) {
-      alert("Error submitting. Please try again.");
-    }
+  const handleStudentSubmit = (answers: Record<string, number>) => {
+    const newResult: StudentResult = {
+      id: crypto.randomUUID(),
+      studentData,
+      answers,
+      timestamp: new Date().toISOString()
+    };
+
+    // Save to Local State & Storage
+    const updatedResults = [...results, newResult];
+    setResults(updatedResults);
+    localStorage.setItem('exam_results', JSON.stringify(updatedResults));
+    
+    setView('student-done');
   };
 
   const handleResetRequest = () => {
@@ -536,34 +645,20 @@ export default function App() {
 
   // --- Admin Actions ---
 
-  const initDatabase = async () => {
-    if (!confirm("This will overwrite existing questions with data from 'public/exam_data.json'. Continue?")) return;
-    
-    try {
-      const response = await fetch('/exam_data.json');
-      const data = await response.json();
+  const reloadFromFile = async () => {
+    if (!confirm("This will attempt to reload questions from the file. If unavailable, it will revert to defaults. Continue?")) return;
+    window.location.reload();
+  };
 
-      for (const q of data) {
-        const { correctIndex, ...publicQ } = q;
-        
-        // Save Public Question
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'questions', q.id), publicQ);
-        
-        // Save Secure Key
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'secure_keys', q.id), {
-          id: q.id,
-          correctIndex: correctIndex
-        });
-      }
-      
-      // Save Default Settings
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), DEFAULT_SETTINGS);
-      
-      alert("Database Initialized Successfully from File!");
-    } catch (err) {
-      alert("Failed to load 'exam_data.json'. Make sure it exists in the public folder.");
-      console.error(err);
-    }
+  const clearResults = () => {
+    if(!confirm("Are you sure you want to DELETE ALL student submissions? This cannot be undone.")) return;
+    localStorage.removeItem('exam_results');
+    setResults([]);
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem('exam_settings', JSON.stringify(settings));
+    alert("Settings saved to browser storage.");
   };
 
   const calculateScore = (result: StudentResult) => {
@@ -584,40 +679,6 @@ export default function App() {
   };
 
   // --- Render ---
-
-  if (permissionError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-        <div className="bg-white p-8 rounded-xl shadow-xl max-w-2xl w-full border-l-4 border-red-500">
-          <div className="flex items-center gap-3 mb-4 text-red-600">
-            <AlertTriangle size={32} />
-            <h2 className="text-2xl font-bold">Database Access Denied</h2>
-          </div>
-          <p className="text-gray-700 mb-6">
-            The app cannot connect to your Firebase Database. This is usually because 
-            <strong> Security Rules</strong> are blocking the connection.
-          </p>
-          
-          <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm mb-6 overflow-x-auto">
-             <p className="text-gray-400 mb-2">// Go to Firebase Console &gt; Firestore Database &gt; Rules</p>
-             <p className="text-gray-400 mb-2">// Paste this code to allow access:</p>
-             <pre className="whitespace-pre-wrap text-green-400">{`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}`}</pre>
-          </div>
-          
-          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 w-full md:w-auto">
-            I've Updated the Rules (Retry)
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   if (view === 'student-login') {
     return (
@@ -651,7 +712,7 @@ service cloud.firestore {
              <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
           <h2 className="text-3xl font-extrabold text-gray-800 mb-4">Assessment Submitted</h2>
-          <p className="text-gray-600 mb-8 text-lg">Thank you. Your responses have been securely recorded. You may now close this window or return to the main screen.</p>
+          <p className="text-gray-600 mb-8 text-lg">Thank you. Your responses have been recorded on this device.</p>
           <button onClick={() => window.location.reload()} className="text-blue-600 font-bold hover:text-blue-800 flex items-center justify-center gap-2 mx-auto">
             <RefreshCw size={16} /> Return to Registration
           </button>
@@ -674,7 +735,7 @@ service cloud.firestore {
                <Shield className="text-blue-500" />
                <span className="font-bold text-xl tracking-wider">ADMIN</span>
              </div>
-             <div className="text-xs text-gray-500 uppercase tracking-widest">Control Panel</div>
+             <div className="text-xs text-gray-500 uppercase tracking-widest">Local Mode</div>
           </div>
           <nav className="flex-1 p-4 space-y-2 mt-4">
             <button onClick={() => setActiveTab('results')} className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${activeTab === 'results' ? 'bg-blue-600 shadow-lg shadow-blue-900/50 translate-x-1' : 'hover:bg-gray-800 text-gray-400 hover:text-white'}`}>
@@ -701,10 +762,15 @@ service cloud.firestore {
               <div className="flex justify-between items-end mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">Assessment Results</h2>
-                  <p className="text-gray-500 mt-1">Real-time submission tracking</p>
+                  <p className="text-gray-500 mt-1">Stored locally on this device</p>
                 </div>
-                <div className="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-600">
-                  Total Submissions: {results.length}
+                <div className="flex gap-3">
+                  <button onClick={clearResults} className="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg shadow text-sm font-bold flex items-center gap-2">
+                    <Trash2 size={16} /> Clear All
+                  </button>
+                  <div className="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-600 flex items-center">
+                    Total: {results.length}
+                  </div>
                 </div>
               </div>
               
@@ -722,7 +788,7 @@ service cloud.firestore {
                   <tbody className="divide-y divide-gray-100">
                     {results.map(r => {
                       const stats = calculateScore(r);
-                      const dateStr = r.timestamp ? r.timestamp.toDate().toLocaleString() : 'Syncing...';
+                      const dateStr = new Date(r.timestamp).toLocaleString();
                       return (
                         <tr key={r.id} className="hover:bg-blue-50/50 transition-colors">
                           <td className="p-5">
@@ -748,7 +814,7 @@ service cloud.firestore {
                       );
                     })}
                     {results.length === 0 && (
-                      <tr><td colSpan={5} className="p-12 text-center text-gray-400 italic">No submissions received yet.</td></tr>
+                      <tr><td colSpan={5} className="p-12 text-center text-gray-400 italic">No submissions found on this device.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -761,7 +827,7 @@ service cloud.firestore {
               <div className="flex justify-between items-center mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">Question Bank</h2>
-                  <p className="text-gray-500 mt-1">Manage assessment content</p>
+                  <p className="text-gray-500 mt-1">Loaded from <code className="bg-gray-200 px-1 rounded text-sm">public/exam_data.json</code></p>
                 </div>
                 <div className="flex gap-3">
                    <a 
@@ -769,13 +835,10 @@ service cloud.firestore {
                     target="_blank" 
                     className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-sm transition-all"
                    >
-                     <ExternalLink size={18} /> View Data File
+                     <ExternalLink size={18} /> View Raw File
                    </a>
-                   <button onClick={initDatabase} className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-md hover:shadow-lg transition-all">
-                    <RefreshCw size={18} /> Load from File
-                  </button>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-md hover:shadow-lg transition-all">
-                    <Plus size={18} /> New Question
+                   <button onClick={reloadFromFile} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-md hover:shadow-lg transition-all">
+                    <RefreshCw size={18} /> Reload File
                   </button>
                 </div>
               </div>
@@ -786,10 +849,6 @@ service cloud.firestore {
                       <div className="flex gap-3">
                          <span className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded text-xs h-fit">Q{q.id}</span>
                          <h4 className="font-bold text-lg text-gray-800 leading-snug max-w-2xl">{q.text}</h4>
-                      </div>
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"><SettingsIcon size={18} /></button>
-                         <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={18} /></button>
                       </div>
                     </div>
                     <div className="pl-12 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
@@ -841,10 +900,10 @@ service cloud.firestore {
                  </div>
                  <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
                     <button 
-                      onClick={() => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), settings)}
+                      onClick={saveSettings}
                       className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-black flex items-center gap-2 font-bold shadow-lg transition-transform active:scale-95"
                     >
-                      <Save size={18} /> Save Changes
+                      <Save size={18} /> Save Settings Locally
                     </button>
                  </div>
                </div>
