@@ -1,0 +1,182 @@
+[
+  { 
+    "id": "1", 
+    "text": "“Health” in occupational health refers mainly to:", 
+    "options": ["Preventing physical injuries only", "Avoiding all exposure to chemicals at work", "Promoting complete physical, mental, and social well-being", "Ensuring workers are medically fit for employment"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "2", 
+    "text": "Which example best represents a psychosocial hazard?", 
+    "options": ["Excessive heat exposure inside a unit", "High noise levels near compressors", "Harassment, overwhelming workload, or job insecurity", "Use of defective lifting equipment"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "3", 
+    "text": "A strong safety culture in a refinery is built primarily on:", 
+    "options": ["Strict punishment for every mistake", "Encouraging reporting, learning, and proactive prevention", "Minimizing communication to avoid confusion", "Relying completely on experienced staff"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "4", 
+    "text": "The main purpose of the Permit to Work (PTW) system is to:", 
+    "options": ["Restrict routine work", "Control non-routine and hazardous work activities", "Approve overtime requests", "Identify skilled workers only"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "5", 
+    "text": "Which situation requires a Hot Work Permit?", 
+    "options": ["Opening a drain valve", "Performing welding inside a tank", "Checking insulation", "Taking a water sample"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "6", 
+    "text": "A Lockout/Tagout (LOTO) procedure primarily ensures:", 
+    "options": ["All tools are clean before use", "Energy sources are isolated and cannot be re-energized", "Workers work faster during shutdown", "Only electrical hazards are controlled"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "7", 
+    "text": "During LOTO, which of the following is MOST critical?", 
+    "options": ["Using new padlocks", "Verifying zero energy after isolation", "Tag color", "Number of workers involved"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "8", 
+    "text": "H₂S poses the highest danger because:", 
+    "options": ["It is non-toxic but flammable", "It causes olfactory fatigue, making smell unreliable", "It is flammable but non-toxic", "It is only found in pipelines"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "9", 
+    "text": "A worker suddenly collapses in an area known for H₂S. What is the FIRST action?", 
+    "options": ["Run in and drag the worker out", "Hold your breath and assist", "Call for help, don SCBA, and only then perform rescue", "Wait until someone else arrives"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "10", 
+    "text": "Carbon monoxide (CO) is dangerous mainly because it:", 
+    "options": ["Has a strong irritating odor", "Displaces oxygen by binding to hemoglobin", "Is usually visible as white gas", "Only occurs in confined spaces"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "11", 
+    "text": "SO₂ exposure is best described as:", 
+    "options": ["A simple asphyxiant non-toxic", "A gas causing respiratory irritation and corrosive effects", "An anesthetic gas", "Physically harmless in small doses"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "12", 
+    "text": "In hazardous area classification, the primary purpose is to:", 
+    "options": ["Calculate explosion overpressure", "Assign appropriate electrical equipment for the gas risk", "Determine PPE rotation", "Identify the best evacuation route"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "13", 
+    "text": "A refinery unit with continuous presence of flammable vapor under normal operation is typically classified as:", 
+    "options": ["Zone 0", "Zone 1", "Zone 2", "Non-classified area"], 
+    "correctIndex": 0
+  },
+  { 
+    "id": "14", 
+    "text": "A difference between Zone 1 and Zone 2 is:", 
+    "options": ["Zone 1 is safer than Zone 2", "Zone 2 means flammable gas is not expected during normal operation", "Zone 2 requires ATEX Group IIC always", "Zone 1 does not require explosion-proof equipment"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "15", 
+    "text": "Which of the following is a chemical hazard?", 
+    "options": ["Unprotected machine gears", "Benzene vapors in a pump house", "Working at height", "High-voltage panels"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "16", 
+    "text": "Which of the following best fits a process safety hazard?", 
+    "options": ["A worker slipping on a wet floor", "Failure of a high-pressure reactor leading to major release", "A worker lifting incorrectly", "Sun exposure"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "17", 
+    "text": "Physical hazard examples include:", 
+    "options": ["Flammable gases", "Heat, noise, vibration, and radiation", "Ergonomic strain", "Workload pressure"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "18", 
+    "text": "LOPA (Layer of Protection Analysis) is used to:", 
+    "options": ["Replace detailed risk assessments", "Evaluate the adequacy of independent protection layers", "Approve design drawings", "Eliminate all process risks"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "19", 
+    "text": "Which of the following is considered an Independent Protection Layer (IPL) in LOPA?", 
+    "options": ["Operator experience", "A relief valve with proper design and maintenance", "A checklist", "A warning sign"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "20", 
+    "text": "A scenario involves a high-pressure vessel that could overpressure. Which combination is MOST consistent with LOPA?", 
+    "options": ["“We rely on operator skill only.”", "“We have alarms, interlocks, and a PSV.”", "“We hope it doesn’t happen.”", "“We ignore rare events.”"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "21", 
+    "text": "A key lesson from the Piper Alpha disaster is:", 
+    "options": ["Offshore platforms must be made of concrete", "Poor permit-to-work coordination can escalate catastrophic events", "Gas fires can be extinguished easily", "Evacuation is always safe regardless of fire spread"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "22", 
+    "text": "Piper Alpha demonstrated the importance of:", 
+    "options": ["Perfectly predicting all failures", "Tight control of simultaneous operations and maintenance activities", "Allowing hot work at any time", "Removing all safety valves"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "23", 
+    "text": "Which failure contributed most to the escalation during Piper Alpha?", 
+    "options": ["Strong communication between shifts", "Incomplete isolation and missing blinds during maintenance", "Excessive attention to alarms", "Proper gas detection"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "24", 
+    "text": "You arrive at a job site with strong solvent odor. Workers say “We think it’s safe.” Your FIRST action is:", 
+    "options": ["Proceed with the job", "Continue if you don’t smell anything", "Stop work, assess, and verify atmosphere with proper gas detection", "Open nearby valves to ventilate"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "25", 
+    "text": "During routine inspection, you see an electrician using a non-Ex rated drill in a Zone 1 area. You should:", 
+    "options": ["Ignore it because it’s only temporary", "Allow it if the job is urgent", "Stop the job and explain the hazard before restarting safely", "Ask him to hurry and finish quickly"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "26", 
+    "text": "You observe two technicians entering a confined space without gas testing. The correct response is:", 
+    "options": ["Wait for them to start before stopping them", "Stop them immediately and enforce confined space procedures", "Allow entry if ventilation is running", "Let them enter if the job is simple"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "27", 
+    "text": "A worker complains of dizziness and headache while working near process burners. Which gas exposure is MOST likely?", 
+    "options": ["Oxygen", "Carbon monoxide", "H₂S at 700 ppm concentration", "Argon"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "28", 
+    "text": "You find a pump with repeated seal leaks. What is the safest action?", 
+    "options": ["Increase production to compensate", "Ignore as long as no alarms occur", "Report for maintenance and evaluate for process safety implications", "Place a cloth to absorb leakage"], 
+    "correctIndex": 2
+  },
+  { 
+    "id": "29", 
+    "text": "Oxidative stress in occupational exposure is best described as:", 
+    "options": ["A process where antioxidants increase uncontrolled", "Imbalance between oxidants and antioxidants causing DNA damage", "A mechanical failure in body systems", "A short-term irritation only"], 
+    "correctIndex": 1
+  },
+  { 
+    "id": "30", 
+    "text": "Which lifestyle factor can worsen oxidative stress and occupational exposure effects?", 
+    "options": ["Balanced diet rich in fruits", "Adequate sleep", "Chronic smoking and poor diet", "Regular physical activity"], 
+    "correctIndex": 2
+  }
+]

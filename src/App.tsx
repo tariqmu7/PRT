@@ -10,7 +10,7 @@ import {
 import { 
   Shield, Users, FileText, Settings as SettingsIcon, LogOut, Plus, Trash2, 
   Save, CheckCircle, Clock, ChevronLeft, ChevronRight, 
-  RefreshCw
+  RefreshCw, AlertTriangle, ExternalLink
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
@@ -68,190 +68,6 @@ type StudentResult = {
   timestamp: any;
 };
 
-// --- Default Data (Loaded from Engineers Exam December 2025.docx) ---
-const DEFAULT_QUESTIONS_DATA = [
-  { 
-    id: '1', 
-    text: "“Health” in occupational health refers mainly to:", 
-    options: ["Preventing physical injuries only", "Avoiding all exposure to chemicals at work", "Promoting complete physical, mental, and social well-being", "Ensuring workers are medically fit for employment"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '2', 
-    text: "Which example best represents a psychosocial hazard?", 
-    options: ["Excessive heat exposure inside a unit", "High noise levels near compressors", "Harassment, overwhelming workload, or job insecurity", "Use of defective lifting equipment"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '3', 
-    text: "A strong safety culture in a refinery is built primarily on:", 
-    options: ["Strict punishment for every mistake", "Encouraging reporting, learning, and proactive prevention", "Minimizing communication to avoid confusion", "Relying completely on experienced staff"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '4', 
-    text: "The main purpose of the Permit to Work (PTW) system is to:", 
-    options: ["Restrict routine work", "Control non-routine and hazardous work activities", "Approve overtime requests", "Identify skilled workers only"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '5', 
-    text: "Which situation requires a Hot Work Permit?", 
-    options: ["Opening a drain valve", "Performing welding inside a tank", "Checking insulation", "Taking a water sample"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '6', 
-    text: "A Lockout/Tagout (LOTO) procedure primarily ensures:", 
-    options: ["All tools are clean before use", "Energy sources are isolated and cannot be re-energized", "Workers work faster during shutdown", "Only electrical hazards are controlled"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '7', 
-    text: "During LOTO, which of the following is MOST critical?", 
-    options: ["Using new padlocks", "Verifying zero energy after isolation", "Tag color", "Number of workers involved"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '8', 
-    text: "H₂S poses the highest danger because:", 
-    options: ["It is non-toxic but flammable", "It causes olfactory fatigue, making smell unreliable", "It is flammable but non-toxic", "It is only found in pipelines"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '9', 
-    text: "A worker suddenly collapses in an area known for H₂S. What is the FIRST action?", 
-    options: ["Run in and drag the worker out", "Hold your breath and assist", "Call for help, don SCBA, and only then perform rescue", "Wait until someone else arrives"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '10', 
-    text: "Carbon monoxide (CO) is dangerous mainly because it:", 
-    options: ["Has a strong irritating odor", "Displaces oxygen by binding to hemoglobin", "Is usually visible as white gas", "Only occurs in confined spaces"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '11', 
-    text: "SO₂ exposure is best described as:", 
-    options: ["A simple asphyxiant non-toxic", "A gas causing respiratory irritation and corrosive effects", "An anesthetic gas", "Physically harmless in small doses"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '12', 
-    text: "In hazardous area classification, the primary purpose is to:", 
-    options: ["Calculate explosion overpressure", "Assign appropriate electrical equipment for the gas risk", "Determine PPE rotation", "Identify the best evacuation route"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '13', 
-    text: "A refinery unit with continuous presence of flammable vapor under normal operation is typically classified as:", 
-    options: ["Zone 0", "Zone 1", "Zone 2", "Non-classified area"], 
-    correctIndex: 0 // A
-  },
-  { 
-    id: '14', 
-    text: "A difference between Zone 1 and Zone 2 is:", 
-    options: ["Zone 1 is safer than Zone 2", "Zone 2 means flammable gas is not expected during normal operation", "Zone 2 requires ATEX Group IIC always", "Zone 1 does not require explosion-proof equipment"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '15', 
-    text: "Which of the following is a chemical hazard?", 
-    options: ["Unprotected machine gears", "Benzene vapors in a pump house", "Working at height", "High-voltage panels"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '16', 
-    text: "Which of the following best fits a process safety hazard?", 
-    options: ["A worker slipping on a wet floor", "Failure of a high-pressure reactor leading to major release", "A worker lifting incorrectly", "Sun exposure"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '17', 
-    text: "Physical hazard examples include:", 
-    options: ["Flammable gases", "Heat, noise, vibration, and radiation", "Ergonomic strain", "Workload pressure"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '18', 
-    text: "LOPA (Layer of Protection Analysis) is used to:", 
-    options: ["Replace detailed risk assessments", "Evaluate the adequacy of independent protection layers", "Approve design drawings", "Eliminate all process risks"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '19', 
-    text: "Which of the following is considered an Independent Protection Layer (IPL) in LOPA?", 
-    options: ["Operator experience", "A relief valve with proper design and maintenance", "A checklist", "A warning sign"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '20', 
-    text: "A scenario involves a high-pressure vessel that could overpressure. Which combination is MOST consistent with LOPA?", 
-    options: ["“We rely on operator skill only.”", "“We have alarms, interlocks, and a PSV.”", "“We hope it doesn’t happen.”", "“We ignore rare events.”"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '21', 
-    text: "A key lesson from the Piper Alpha disaster is:", 
-    options: ["Offshore platforms must be made of concrete", "Poor permit-to-work coordination can escalate catastrophic events", "Gas fires can be extinguished easily", "Evacuation is always safe regardless of fire spread"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '22', 
-    text: "Piper Alpha demonstrated the importance of:", 
-    options: ["Perfectly predicting all failures", "Tight control of simultaneous operations and maintenance activities", "Allowing hot work at any time", "Removing all safety valves"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '23', 
-    text: "Which failure contributed most to the escalation during Piper Alpha?", 
-    options: ["Strong communication between shifts", "Incomplete isolation and missing blinds during maintenance", "Excessive attention to alarms", "Proper gas detection"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '24', 
-    text: "You arrive at a job site with strong solvent odor. Workers say “We think it’s safe.” Your FIRST action is:", 
-    options: ["Proceed with the job", "Continue if you don’t smell anything", "Stop work, assess, and verify atmosphere with proper gas detection", "Open nearby valves to ventilate"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '25', 
-    text: "During routine inspection, you see an electrician using a non-Ex rated drill in a Zone 1 area. You should:", 
-    options: ["Ignore it because it’s only temporary", "Allow it if the job is urgent", "Stop the job and explain the hazard before restarting safely", "Ask him to hurry and finish quickly"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '26', 
-    text: "You observe two technicians entering a confined space without gas testing. The correct response is:", 
-    options: ["Wait for them to start before stopping them", "Stop them immediately and enforce confined space procedures", "Allow entry if ventilation is running", "Let them enter if the job is simple"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '27', 
-    text: "A worker complains of dizziness and headache while working near process burners. Which gas exposure is MOST likely?", 
-    options: ["Oxygen", "Carbon monoxide", "H₂S at 700 ppm concentration", "Argon"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '28', 
-    text: "You find a pump with repeated seal leaks. What is the safest action?", 
-    options: ["Increase production to compensate", "Ignore as long as no alarms occur", "Report for maintenance and evaluate for process safety implications", "Place a cloth to absorb leakage"], 
-    correctIndex: 2 // C
-  },
-  { 
-    id: '29', 
-    text: "Oxidative stress in occupational exposure is best described as:", 
-    options: ["A process where antioxidants increase uncontrolled", "Imbalance between oxidants and antioxidants causing DNA damage", "A mechanical failure in body systems", "A short-term irritation only"], 
-    correctIndex: 1 // B
-  },
-  { 
-    id: '30', 
-    text: "Which lifestyle factor can worsen oxidative stress and occupational exposure effects?", 
-    options: ["Balanced diet rich in fruits", "Adequate sleep", "Chronic smoking and poor diet", "Regular physical activity"], 
-    correctIndex: 2 // C
-  }
-];
-
 const DEFAULT_SETTINGS: AppSettings = {
   timerMinutes: 45,
   passScore: 60,
@@ -273,6 +89,7 @@ const HeaderLogo = () => (
     <img src="/logo.png" alt="EPROM" className="h-12 object-contain" onError={(e) => {
       // Fallback if image fails
       e.currentTarget.style.display = 'none';
+      document.getElementById('text-logo-fallback')!.style.display = 'flex';
     }}/>
     <div id="text-logo-fallback" className="flex flex-col">
       <span className="text-xl font-black tracking-tight text-blue-900">EPROM</span>
@@ -596,6 +413,7 @@ export default function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [studentData, setStudentData] = useState<any>(null);
+  const [permissionError, setPermissionError] = useState(false);
   
   // Admin State
   const [activeTab, setActiveTab] = useState<'results' | 'questions' | 'settings'>('results');
@@ -623,7 +441,10 @@ export default function App() {
       if (docSnap.exists()) {
         setSettings(docSnap.data() as AppSettings);
       }
-    }, (err) => console.log("Settings fetch err", err));
+    }, (err: any) => {
+      console.log("Settings fetch err", err);
+      if (err.code === 'permission-denied') setPermissionError(true);
+    });
 
     // Fetch Public Questions (No Answers)
     const qQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'questions'));
@@ -632,15 +453,29 @@ export default function App() {
       snap.forEach(d => qs.push(d.data() as Question));
       
       if (qs.length === 0) {
-        // Fallback: Use default data if DB is empty so the exam isn't broken
-        const defaults = DEFAULT_QUESTIONS_DATA.map(({ correctIndex, ...rest }) => rest);
-        setQuestions(defaults);
+        // Fallback: Fetch from public JSON file if DB is empty
+        fetch('/exam_data.json')
+          .then(res => res.json())
+          .then(data => {
+            console.log("Loaded default data from file", data);
+            // Transform data if needed (data includes correctIndex, remove it for public display)
+            // But for local state questions, we usually keep it or strip it.
+            // For security, strictly we should strip it, but for simplicity here we keep it in state
+            // as questions type doesn't strictly forbid it, though interface uses it.
+            // Actually type Question has no correctIndex.
+            const sanitizedQs = data.map(({ correctIndex, ...rest }: any) => rest);
+            setQuestions(sanitizedQs);
+          })
+          .catch(err => console.error("Failed to load default data", err));
       } else {
         // Sort by ID to keep order
         qs.sort((a, b) => parseInt(a.id) - parseInt(b.id));
         setQuestions(qs);
       }
-    }, (err) => console.log("Q fetch err", err));
+    }, (err: any) => {
+      console.log("Q fetch err", err);
+      if (err.code === 'permission-denied') setPermissionError(true);
+    });
 
     return () => { unsubSettings(); unsubQs(); };
   }, [user]);
@@ -702,25 +537,33 @@ export default function App() {
   // --- Admin Actions ---
 
   const initDatabase = async () => {
-    if (!confirm("This will overwrite existing questions. Continue?")) return;
+    if (!confirm("This will overwrite existing questions with data from 'public/exam_data.json'. Continue?")) return;
     
-    for (const q of DEFAULT_QUESTIONS_DATA) {
-      const { correctIndex, ...publicQ } = q;
+    try {
+      const response = await fetch('/exam_data.json');
+      const data = await response.json();
+
+      for (const q of data) {
+        const { correctIndex, ...publicQ } = q;
+        
+        // Save Public Question
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'questions', q.id), publicQ);
+        
+        // Save Secure Key
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'secure_keys', q.id), {
+          id: q.id,
+          correctIndex: correctIndex
+        });
+      }
       
-      // Save Public Question
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'questions', q.id), publicQ);
+      // Save Default Settings
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), DEFAULT_SETTINGS);
       
-      // Save Secure Key
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'secure_keys', q.id), {
-        id: q.id,
-        correctIndex: correctIndex
-      });
+      alert("Database Initialized Successfully from File!");
+    } catch (err) {
+      alert("Failed to load 'exam_data.json'. Make sure it exists in the public folder.");
+      console.error(err);
     }
-    
-    // Save Default Settings
-    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'), DEFAULT_SETTINGS);
-    
-    alert("Database Initialized Successfully!");
   };
 
   const calculateScore = (result: StudentResult) => {
@@ -741,6 +584,40 @@ export default function App() {
   };
 
   // --- Render ---
+
+  if (permissionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-2xl w-full border-l-4 border-red-500">
+          <div className="flex items-center gap-3 mb-4 text-red-600">
+            <AlertTriangle size={32} />
+            <h2 className="text-2xl font-bold">Database Access Denied</h2>
+          </div>
+          <p className="text-gray-700 mb-6">
+            The app cannot connect to your Firebase Database. This is usually because 
+            <strong> Security Rules</strong> are blocking the connection.
+          </p>
+          
+          <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm mb-6 overflow-x-auto">
+             <p className="text-gray-400 mb-2">// Go to Firebase Console &gt; Firestore Database &gt; Rules</p>
+             <p className="text-gray-400 mb-2">// Paste this code to allow access:</p>
+             <pre className="whitespace-pre-wrap text-green-400">{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`}</pre>
+          </div>
+          
+          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 w-full md:w-auto">
+            I've Updated the Rules (Retry)
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (view === 'student-login') {
     return (
@@ -887,8 +764,15 @@ export default function App() {
                   <p className="text-gray-500 mt-1">Manage assessment content</p>
                 </div>
                 <div className="flex gap-3">
+                   <a 
+                    href="/exam_data.json" 
+                    target="_blank" 
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-sm transition-all"
+                   >
+                     <ExternalLink size={18} /> View Data File
+                   </a>
                    <button onClick={initDatabase} className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-md hover:shadow-lg transition-all">
-                    <RefreshCw size={18} /> Reset to Defaults
+                    <RefreshCw size={18} /> Load from File
                   </button>
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-md hover:shadow-lg transition-all">
                     <Plus size={18} /> New Question
