@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Keeper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="glass rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative min-h-[500px]">
+        
+        <!-- Header -->
+        <div class="bg-slate-900 text-white p-6 text-center">
+            <h1 class="text-2xl font-bold">Sheet Database</h1>
+            <p class="text-slate-400 text-sm">Serverless Google Sheets App</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-gray-200">
+            <button onclick="switchTab('write')" id="tab-write" class="flex-1 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600 transition-colors bg-blue-50">
+                <i class="fas fa-paper-plane mr-2"></i> Send Name
+            </button>
+            <button onclick="switchTab('read')" id="tab-read" class="flex-1 py-4 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                <i class="fas fa-list mr-2"></i> View List
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="p-6">
+            
+            <!-- WRITE SECTION -->
+            <div id="view-write" class="space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
+                        <i class="fas fa-user-plus text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800">Add a New Name</h2>
+                    <p class="text-gray-500 text-sm">This will save directly to your Google Sheet.</p>
+                </div>
+
+                <form id="nameForm" onsubmit="submitName(event)" class="space-y-4">
+                    <div>
+                        <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="nameInput" required
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            placeholder="Enter name here...">
+                    </div>
+                    <button type="submit" id="submitBtn"
+                        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                        <span>Save to Cloud</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- READ SECTION -->
+            <div id="view-read" class="hidden h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Database Records</h2>
+                    <button onclick="fetchNames()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                </div>
+                
+                <!-- List Container -->
+                <div id="namesList" class="flex-1 overflow-y-auto max-h-[300px] space-y-2 pr-1">
+                    <!-- Loading State -->
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-cloud-download-alt text-3xl mb-2"></i>
+                        <p>Click refresh to load data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Toast -->
+        <div id="toast" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 text-sm pointer-events-none flex items-center gap-2">
+            <i class="fas fa-info-circle"></i>
+            <span id="toastMsg">Notification</span>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚠️ CONFIGURATION: PASTE YOUR URL HERE
+        // ==========================================
+        // MAKE SURE THE URL ENDS WITH '/exec' AND CONTAINS '/s/'
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGsrmdxKo8I_3hfvVmHDErWYO0si9dwCgaMFk8yX_ei-rUUENqcBcpmNMP0e8wMywd/exec'; 
+        
+        function validateUrl() {
+            if (SCRIPT_URL.includes('PASTE_YOUR')) {
+                showToast('Please paste your Web App URL in the code!', true);
+                return false;
+            }
+            if (!SCRIPT_URL.includes('/s/') || !SCRIPT_URL.includes('/exec')) {
+                console.error("Invalid URL detected. You likely used a Library URL instead of a Web App URL.");
+                alert("Incorrect URL Format:\n\nThe URL you pasted seems to be a 'Library' or 'Edit' URL.\n\nPlease go to Deploy > Manage Deployments in Apps Script and copy the 'Web App' URL ending in '/exec'.");
+                return false;
+            }
+            return true;
+        }
+
+        function switchTab(tab) {
+            // UI Toggle logic
+            const writeView = document.getElementById('view-write');
+            const readView = document.getElementById('view-read');
+            const writeTab = document.getElementById('tab-write');
+            const readTab = document.getElementById('tab-read');
+
+            if (tab === 'write') {
+                writeView.classList.remove('hidden');
+                readView.classList.add('hidden');
+                
+                writeTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
+                writeTab.classList.remove('text-gray-500');
+                
+                readTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
+                readTab.classList.add('text-gray-500');
+            } else {
+                writeView.classList.add('hidden');
+                readView.classList.remove('hidden');
+                
+                readTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
+                readTab.classList.remove('text-gray-500');
+                
+                writeTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50');
+                writeTab.classList.add('text-gray-500');
+                
+                fetchNames(); // Auto fetch when switching to read
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMsg');
+            toast.style.backgroundColor = isError ? '#ef4444' : '#1e293b';
+            msg.textContent = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        }
+
+        // --- API FUNCTIONS ---
+
+        async function submitName(e) {
+            e.preventDefault();
+            if (!validateUrl()) return;
+
+            const input = document.getElementById('nameInput');
+            const btn = document.getElementById('submitBtn');
+            const name = input.value;
+
+            // UI Loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                // FIXED: Use 'no-cors' to avoid browser blocking the Google redirect
+                // Note: In no-cors mode, we cannot read the response JSON. We assume success if it doesn't throw.
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: {
+                        'Content-Type': 'text/plain' // text/plain prevents CORS preflight
+                    },
+                    body: JSON.stringify({ name: name })
+                });
+                
+                // Since we can't read the response in no-cors, we assume it worked.
+                showToast('Saved to Google Sheet!');
+                input.value = ''; 
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Connection error', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Save to Cloud</span><i class="fas fa-arrow-right"></i>';
+            }
+        }
+
+        async function fetchNames() {
+            if (!validateUrl()) return;
+            
+            const list = document.getElementById('namesList');
+            list.innerHTML = '<div class="text-center py-4 text-gray-500"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+            try {
+                // Add timestamp to prevent caching
+                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json(); 
+                
+                list.innerHTML = '';
+                
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<div class="text-center py-4 text-gray-400">No records found</div>';
+                    return;
+                }
+
+                // Reverse loop to show newest first
+                for (let i = data.length - 1; i >= 0; i--) {
+                    const row = data[i];
+                    // row[0] is Name, row[1] is Date
+                    const name = row[0]; 
+                    const dateRaw = row[1] ? new Date(row[1]) : new Date();
+                    const dateStr = dateRaw.toLocaleDateString() + ' ' + dateRaw.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                    if(!name) continue;
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow';
+                    card.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-gray-800">${name}</p>
+                            <p class="text-xs text-gray-400">${dateStr}</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                }
+
+            } catch (error) {
+                console.error(error);
+                list.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">
+                    <p class="font-bold">Failed to load data</p>
+                    <p class="text-xs mt-1">Check your URL or Deployment permissions</p>
+                </div>`;
+            }
+        }
+    </script>
+</body>
+</html>
