@@ -179,17 +179,24 @@
                 </div>
             </section>
 
-            <!-- VIEW: ACTIVE TEST -->
+            <!-- VIEW: ACTIVE TEST (SINGLE QUESTION) -->
             <section id="view-test-active" class="hidden max-w-4xl mx-auto fade-in no-select">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex justify-between items-center sticky top-20 z-40">
-                    <div><span class="text-gray-500 text-sm">Progress</span> <div class="h-2 w-32 bg-gray-200 rounded-full mt-1 overflow-hidden"><div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div></div></div>
+                    <div>
+                        <span class="text-gray-500 text-sm">Question <span id="q-current">1</span> of <span id="q-total">10</span></span>
+                        <div class="h-2 w-32 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
                     <div class="font-mono font-bold text-lg bg-gray-50 px-3 py-1 rounded-lg border"><i class="far fa-clock text-blue-600"></i> <span id="timer">00:00</span></div>
                 </div>
-                <div id="question-container" class="space-y-6 pb-20"></div>
-                <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg z-50">
-                    <div class="max-w-4xl mx-auto flex justify-end">
-                        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">Submit Assessment</button>
-                    </div>
+                
+                <!-- Single Question Container -->
+                <div id="question-container" class="pb-20"></div>
+
+                <!-- Navigation Footer (Rendered Dynamically) -->
+                <div id="question-nav" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg z-50 flex justify-center">
+                    <!-- Buttons Injected via JS -->
                 </div>
             </section>
 
@@ -227,11 +234,12 @@
         // ==========================================
         // ⚠️ PASTE YOUR NEW WEB APP URL HERE
         // ==========================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyiPGrpOiZiR09-ZYFUDIDjvnxwqiloiQFyWsYislFc6UWkEysdDbPWN_4vj86iFdOo/exec'; 
+        const API_URL = 'PASTE_YOUR_WEB_APP_URL_HERE'; 
 
         let currentUser = null;
         let currentExcelData = null;
         let currentTest = null;
+        let currentQuestionIndex = 0; // NEW: Track current question
         let userAnswers = {};
         let testTimerInterval = null;
 
@@ -278,7 +286,6 @@
             e.preventDefault();
             let input = document.getElementById('testIdInput').value.trim();
             if(!input) return showToast('Please enter a Test ID', true);
-            // Support full URLs if pasted
             if (input.includes('test=')) {
                 try { input = new URL(input).searchParams.get('test'); } catch(e) {}
             }
@@ -305,7 +312,6 @@
             loading.classList.remove('hidden');
             
             try {
-                // Fetch Stats in parallel or sequence. Ideally one call, but let's do two for simplicity of router
                 const stats = await callApi({ action: 'get_stats' }, 'GET');
                 document.getElementById('stat-tests').innerText = stats.tests;
                 document.getElementById('stat-subs').innerText = stats.submissions;
@@ -314,7 +320,6 @@
                 loading.classList.add('hidden');
                 
                 tests.forEach(t => {
-                    // Link with Short ID
                     const link = window.location.href.split('?')[0] + '?test=' + t.id;
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
@@ -412,14 +417,14 @@
             btn.innerHTML = 'Create Test'; btn.disabled = false;
         }
 
-        // --- TEST LOGIC ---
+        // --- TEST LOGIC (SINGLE PAGE) ---
         async function loadTest(testId) {
             router('test-intro');
             try {
                 const res = await callApi({ action: 'get_test_details', id: testId }, 'GET');
                 if (res.error) throw new Error(res.error);
                 currentTest = res;
-                currentTest.id = testId; // Store for submit
+                currentTest.id = testId; 
                 
                 document.getElementById('intro-title').innerText = res.meta.title;
                 document.getElementById('intro-duration').innerText = res.meta.duration;
@@ -434,34 +439,111 @@
             const name = document.getElementById('candidateName').value;
             if (!name) return showToast('Enter name', true);
             currentTest.candidate = { name: name, email: document.getElementById('candidateEmail').value };
-            renderQuestions();
+            
+            // RESET
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            renderCurrentQuestion();
             router('test-active');
             startTimer(currentTest.meta.duration);
         }
 
-        function renderQuestions() {
+        function renderCurrentQuestion() {
             const c = document.getElementById('question-container');
-            c.innerHTML = '';
-            currentTest.questions.forEach((q, i) => {
-                let opts = '';
-                q.options.forEach(opt => {
-                    opts += `<label class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                        <input type="radio" name="q_${q.id}" value="${opt}" onchange="userAnswers[${q.id}] = this.value; updateProgress()" class="h-5 w-5 text-blue-600">
+            const nav = document.getElementById('question-nav');
+            const q = currentTest.questions[currentQuestionIndex];
+            const total = currentTest.questions.length;
+            
+            // Update Header Stats
+            document.getElementById('q-current').innerText = currentQuestionIndex + 1;
+            document.getElementById('q-total').innerText = total;
+
+            // Update Progress Bar
+            const pct = (Object.keys(userAnswers).length / total) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+
+            // Render Options
+            let opts = '';
+            q.options.forEach(opt => {
+                const isChecked = userAnswers[q.id] === opt ? 'checked' : '';
+                // Highlight selected styling
+                const activeClass = isChecked ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:bg-gray-50';
+                
+                opts += `
+                    <label class="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition ${activeClass}">
+                        <input type="radio" name="q_${q.id}" value="${opt}" ${isChecked} onchange="recordAnswer(${q.id}, '${opt}')" class="h-5 w-5 text-blue-600">
                         <span class="text-gray-700">${opt}</span>
-                    </label>`;
-                });
-                c.innerHTML += `<div class="bg-white p-6 rounded-xl border border-gray-100"><h3 class="text-lg font-semibold mb-4 text-slate-800"><span class="text-blue-500 mr-2">Q${i+1}.</span> ${q.text}</h3><div class="space-y-3">${opts}</div></div>`;
+                    </label>
+                `;
             });
+
+            // Single Card HTML
+            c.innerHTML = `
+                <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-md fade-in min-h-[300px]">
+                    <h3 class="text-xl font-semibold mb-6 text-slate-900 leading-relaxed">
+                        <span class="text-blue-500 mr-2">Q${currentQuestionIndex + 1}.</span> ${q.text}
+                    </h3>
+                    <div class="space-y-3">
+                        ${opts}
+                    </div>
+                </div>
+            `;
+
+            // Navigation Buttons
+            const isLast = currentQuestionIndex === total - 1;
+            
+            // Generate Buttons HTML
+            let navHtml = `
+                <div class="max-w-4xl w-full flex justify-between items-center px-4">
+                    <button onclick="prevQuestion()" class="px-6 py-3 rounded-lg font-medium text-gray-500 hover:bg-gray-100 transition ${currentQuestionIndex === 0 ? 'invisible' : ''}">
+                        <i class="fas fa-arrow-left mr-2"></i> Previous
+                    </button>
+                    
+                    ${isLast 
+                        ? `<button onclick="submitTest()" id="btn-submit-test" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all flex items-center">
+                             <span>Submit Assessment</span> <i class="fas fa-check ml-2"></i>
+                           </button>`
+                        : `<button onclick="nextQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all flex items-center">
+                             Next <i class="fas fa-arrow-right ml-2"></i>
+                           </button>`
+                    }
+                </div>
+            `;
+            nav.innerHTML = navHtml;
         }
 
-        function updateProgress() {
-            const pct = (Object.keys(userAnswers).length / currentTest.questions.length) * 100;
-            document.getElementById('progress-bar').style.width = pct + '%';
+        function recordAnswer(qId, val) {
+            userAnswers[qId] = val;
+            // Update UI selected state without full re-render if preferred, 
+            // but re-rendering ensures styles update:
+            renderCurrentQuestion(); 
+            
+            // Auto-advance
+            if (currentQuestionIndex < currentTest.questions.length - 1) {
+                setTimeout(() => nextQuestion(), 300); // 300ms delay for visual feedback
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentTest.questions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
         }
 
         function startTimer(mins) {
             let secs = mins * 60;
             const d = document.getElementById('timer');
+            if(testTimerInterval) clearInterval(testTimerInterval);
+            
             testTimerInterval = setInterval(() => {
                 secs--;
                 d.innerText = `${Math.floor(secs/60).toString().padStart(2,'0')}:${(secs%60).toString().padStart(2,'0')}`;
@@ -472,33 +554,47 @@
 
         async function submitTest() {
             clearInterval(testTimerInterval);
+            
+            const btn = document.getElementById('btn-submit-test');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-circle-notch fa-spin mr-2"></i> Sending...`;
+            }
+
             let score = 0, total = 0;
             
-            // SCORING FIX: Trim strings before comparing
+            // Scoring
             currentTest.questions.forEach(q => {
                 total += q.points;
                 const userAns = String(userAnswers[q.id] || '').trim();
                 const correct = String(q.correctAnswer || '').trim();
-                
-                // Case-insensitive check just in case
                 if (userAns.toLowerCase() === correct.toLowerCase()) {
                     score += q.points;
                 }
             });
 
-            await callApi({
-                action: 'submit_test',
-                testId: currentTest.id,
-                candidateName: currentTest.candidate.name,
-                candidateEmail: currentTest.candidate.email,
-                score: score,
-                totalPoints: total,
-                answers: userAnswers
-            });
-            
-            document.getElementById('result-score').innerText = score;
-            document.getElementById('result-total').innerText = total;
-            router('result');
+            try {
+                await callApi({
+                    action: 'submit_test',
+                    testId: currentTest.id,
+                    candidateName: currentTest.candidate.name,
+                    candidateEmail: currentTest.candidate.email,
+                    score: score,
+                    totalPoints: total,
+                    answers: userAnswers
+                });
+                
+                document.getElementById('result-score').innerText = score;
+                document.getElementById('result-total').innerText = total;
+                router('result');
+                
+            } catch (err) {
+                showToast('Submission error! Please try again.', true);
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `Retry Submit`;
+                }
+            }
         }
 
         // --- UTILS ---
