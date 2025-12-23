@@ -251,7 +251,7 @@
         let currentUser = null;
         let currentExcelData = null;
         let currentTest = null;
-        let currentQuestionIndex = 0; // NEW: Track current question
+        let currentQuestionIndex = 0; 
         let userAnswers = {};
         let testTimerInterval = null;
 
@@ -477,13 +477,10 @@
             // Render Options
             let opts = '';
             q.options.forEach(opt => {
-                // FIXED: Quote Handling & Type Safety
                 const safeOpt = String(opt).replace(/"/g, '&quot;'); 
-                // Using loose check or string conversion to match numbers from Excel vs strings from Inputs
                 const isChecked = String(userAnswers[q.id]) === String(opt) ? 'checked' : '';
                 const activeClass = isChecked ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:bg-gray-50';
                 
-                // FIXED: Use `this.value` to grab the safe option value instead of injecting `${opt}` into JS directly
                 opts += `
                     <label class="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition ${activeClass}">
                         <input type="radio" name="q_${q.id}" value="${safeOpt}" ${isChecked} onchange="recordAnswer(${q.id}, this.value)" class="h-5 w-5 text-blue-600">
@@ -529,13 +526,10 @@
 
         function recordAnswer(qId, val) {
             userAnswers[qId] = val;
-            // Update UI selected state without full re-render if preferred, 
-            // but re-rendering ensures styles update:
             renderCurrentQuestion(); 
-            
             // Auto-advance
             if (currentQuestionIndex < currentTest.questions.length - 1) {
-                setTimeout(() => nextQuestion(), 300); // 300ms delay for visual feedback
+                setTimeout(() => nextQuestion(), 300); 
             }
         }
 
@@ -570,9 +564,8 @@
         // --- NORMALIZE HELPER ---
         function normalizeText(str) {
             if (!str) return '';
-            // Remove hidden characters, trim, lowercase
             return String(str)
-                .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero width spaces
+                .replace(/[\u200B-\u200D\uFEFF]/g, '') 
                 .trim()
                 .toLowerCase();
         }
@@ -593,7 +586,21 @@
             currentTest.questions.forEach((q, idx) => {
                 total += q.points;
                 const userAns = String(userAnswers[q.id] || '').trim();
-                const correctRaw = String(q.correctAnswer || '').trim();
+                let correctRaw = String(q.correctAnswer || '').trim(); // Value from Excel (e.g. "B")
+                let displayExpected = correctRaw;
+
+                // --- KEY FIX: MAP LETTER TO TEXT ---
+                // If Excel says "B", we map it to the 2nd option text
+                if (/^[A-J]$/i.test(correctRaw)) {
+                    const charCode = correctRaw.toUpperCase().charCodeAt(0); // A=65
+                    const index = charCode - 65; // A=0, B=1...
+                    if (q.options && q.options[index]) {
+                        // Found text! Use it for comparison
+                        correctRaw = String(q.options[index]).trim();
+                        // Update display for review to show "B (Text)"
+                        displayExpected = `${String(q.correctAnswer).toUpperCase()} (${correctRaw.substring(0, 30)}...)`;
+                    }
+                }
                 
                 const normUser = normalizeText(userAns);
                 const normCorrect = normalizeText(correctRaw);
@@ -606,18 +613,13 @@
                 }
                 // 2. Fuzzy Match (e.g. Correct: "A", User: "A) Apple")
                 else if (normCorrect.length === 1) {
-                    // Check if user answer starts with "A)" or "A." or "A "
-                    if (normUser.startsWith(normCorrect + ')') || 
-                        normUser.startsWith(normCorrect + '.') || 
-                        normUser.startsWith(normCorrect + ' ')) {
+                    if (normUser.startsWith(normCorrect + ')') || normUser.startsWith(normCorrect + '.') || normUser.startsWith(normCorrect + ' ')) {
                         isCorrect = true;
                     }
                 }
                 // 3. Reverse Fuzzy (Correct: "A) Apple", User: "A")
                 else if (normUser.length === 1) {
-                    if (normCorrect.startsWith(normUser + ')') || 
-                        normCorrect.startsWith(normUser + '.') || 
-                        normCorrect.startsWith(normUser + ' ')) {
+                    if (normCorrect.startsWith(normUser + ')') || normCorrect.startsWith(normUser + '.') || normCorrect.startsWith(normUser + ' ')) {
                         isCorrect = true;
                     }
                 }
@@ -637,7 +639,7 @@
                         <p class="text-xs text-gray-500 mb-1">${q.text}</p>
                         <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
                             <div><span class="font-bold">You:</span> ${userAns || '<span class="italic text-gray-400">No Answer</span>'}</div>
-                            <div><span class="font-bold">Expected:</span> ${correctRaw || '<span class="italic text-red-400">Empty/Error</span>'}</div>
+                            <div><span class="font-bold">Expected:</span> ${displayExpected}</div>
                         </div>
                     </div>
                 `;
