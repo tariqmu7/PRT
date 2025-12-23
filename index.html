@@ -465,13 +465,16 @@
             // Render Options
             let opts = '';
             q.options.forEach(opt => {
-                const isChecked = userAnswers[q.id] === opt ? 'checked' : '';
-                // Highlight selected styling
+                // FIXED: Quote Handling & Type Safety
+                const safeOpt = String(opt).replace(/"/g, '&quot;'); 
+                // Using loose check or string conversion to match numbers from Excel vs strings from Inputs
+                const isChecked = String(userAnswers[q.id]) === String(opt) ? 'checked' : '';
                 const activeClass = isChecked ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:bg-gray-50';
                 
+                // FIXED: Use `this.value` to grab the safe option value instead of injecting `${opt}` into JS directly
                 opts += `
                     <label class="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition ${activeClass}">
-                        <input type="radio" name="q_${q.id}" value="${opt}" ${isChecked} onchange="recordAnswer(${q.id}, '${opt}')" class="h-5 w-5 text-blue-600">
+                        <input type="radio" name="q_${q.id}" value="${safeOpt}" ${isChecked} onchange="recordAnswer(${q.id}, this.value)" class="h-5 w-5 text-blue-600">
                         <span class="text-gray-700">${opt}</span>
                     </label>
                 `;
@@ -564,14 +567,20 @@
             let score = 0, total = 0;
             
             // Scoring
+            console.log("--- SUBMITTING TEST ---");
             currentTest.questions.forEach(q => {
                 total += q.points;
                 const userAns = String(userAnswers[q.id] || '').trim();
                 const correct = String(q.correctAnswer || '').trim();
+                
+                // Debug log
+                console.log(`Q${q.id + 1}: User='${userAns}' Correct='${correct}'`);
+
                 if (userAns.toLowerCase() === correct.toLowerCase()) {
                     score += q.points;
                 }
             });
+            console.log(`Final Score: ${score}/${total}`);
 
             try {
                 await callApi({
