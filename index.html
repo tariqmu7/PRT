@@ -4,29 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TestMaster Platform</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- SheetJS for Excel Processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.css"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Selection color to prevent cheating by highlighting */
+        .no-select { user-select: none; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-slate-800">
 
-    <!-- APP CONTAINER -->
     <div id="app" class="min-h-screen flex flex-col">
         
         <!-- Navbar -->
@@ -36,16 +28,14 @@
                     <i class="fas fa-graduation-cap text-2xl text-blue-400"></i>
                     <span class="font-bold text-xl tracking-tight">TestMaster</span>
                 </div>
-                <div id="nav-links" class="flex gap-4 text-sm font-medium">
-                    <!-- Dynamic Links Injected Here -->
-                </div>
+                <div id="nav-links" class="flex gap-4 text-sm font-medium"></div>
             </div>
         </nav>
 
         <!-- MAIN CONTENT -->
         <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full relative">
             
-            <!-- NOTIFICATIONS -->
+            <!-- TOAST -->
             <div id="toast" class="fixed bottom-5 right-5 z-50 transform transition-all duration-300 translate-y-20 opacity-0">
                 <div class="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3">
                     <i class="fas fa-info-circle text-blue-400" id="toast-icon"></i>
@@ -53,11 +43,10 @@
                 </div>
             </div>
 
-            <!-- VIEW: HOME / LOGIN / CANDIDATE ENTRY -->
+            <!-- VIEW: LOGIN -->
             <section id="view-login" class="hidden h-[85vh] flex items-center justify-center p-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                    
-                    <!-- Admin Side -->
+                    <!-- Admin -->
                     <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 flex flex-col justify-center">
                         <div class="mb-6">
                             <h2 class="text-2xl font-bold text-slate-900">Admin Portal</h2>
@@ -66,86 +55,59 @@
                         <form onsubmit="handleLogin(event)" class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
-                                <div class="relative">
-                                    <input type="password" id="adminPass" class="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="••••••••">
-                                    <i class="fas fa-lock absolute right-4 top-4 text-gray-400"></i>
-                                </div>
+                                <input type="password" id="adminPass" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
                             </div>
-                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors shadow-md flex justify-center items-center gap-2">
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg shadow-md flex justify-center items-center gap-2">
                                 <span>Login</span> <i class="fas fa-arrow-right"></i>
                             </button>
                         </form>
-                        <p class="text-xs text-gray-400 mt-6 pt-6 border-t border-gray-100">Default: admin123</p>
                     </div>
-
-                    <!-- Candidate Side -->
+                    <!-- Candidate -->
                     <div class="bg-blue-600 p-8 rounded-2xl shadow-xl text-white flex flex-col justify-center relative overflow-hidden">
-                        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
-                        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
-                        
                         <div class="relative z-10">
                             <h2 class="text-2xl font-bold mb-2">Student / Candidate</h2>
-                            <p class="text-blue-100 text-sm mb-8">Enter your Test ID or Paste a Link to begin your assessment.</p>
-                            
+                            <p class="text-blue-100 text-sm mb-8">Enter your 6-character Test ID to begin.</p>
                             <form onsubmit="handleCandidateEntry(event)" class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-blue-100 mb-1">Test ID or Link</label>
-                                    <input type="text" id="testIdInput" class="w-full px-4 py-3 rounded-lg border-0 bg-white/20 placeholder-blue-200 text-white focus:ring-2 focus:ring-white outline-none backdrop-blur-sm" placeholder="e.g. 123-abc or https://...">
+                                    <label class="block text-sm font-medium text-blue-100 mb-1">Test ID</label>
+                                    <input type="text" id="testIdInput" class="w-full px-4 py-3 rounded-lg border-0 bg-white/20 placeholder-blue-200 text-white focus:ring-2 focus:ring-white outline-none backdrop-blur-sm" placeholder="e.g. XY7B2A">
                                 </div>
-                                <button type="submit" class="w-full bg-white text-blue-600 font-bold py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg">
-                                    Start Assessment
-                                </button>
+                                <button type="submit" class="w-full bg-white text-blue-600 font-bold py-3 rounded-lg hover:bg-blue-50 shadow-lg">Start Assessment</button>
                             </form>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- VIEW: ADMIN DASHBOARD -->
+            <!-- VIEW: DASHBOARD -->
             <section id="view-admin-dashboard" class="hidden space-y-8 fade-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
                         <p class="text-slate-500">Manage your tests and submissions</p>
                     </div>
-                    <button onclick="router('create-test')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2 transition-transform hover:-translate-y-0.5">
+                    <button onclick="router('create-test')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">
                         <i class="fas fa-plus"></i> Create New Test
                     </button>
                 </div>
 
-                <!-- Stats Cards -->
+                <!-- Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500">Active Tests</p>
-                                <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-tests">-</h3>
-                            </div>
-                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-file-alt text-xl"></i></div>
-                        </div>
+                        <p class="text-sm font-medium text-gray-500">Active Tests</p>
+                        <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-tests">-</h3>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500">Total Submissions</p>
-                                <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-subs">-</h3>
-                            </div>
-                            <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-users text-xl"></i></div>
-                        </div>
+                        <p class="text-sm font-medium text-gray-500">Total Submissions</p>
+                        <h3 class="text-3xl font-bold text-slate-800 mt-1" id="stat-subs">-</h3>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:bg-slate-50 transition" onclick="showSettingsModal()">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500">Settings</p>
-                                <h3 class="text-lg font-bold text-slate-800 mt-2">Change Password</h3>
-                            </div>
-                            <div class="p-3 bg-purple-50 text-purple-600 rounded-lg"><i class="fas fa-cog text-xl"></i></div>
-                        </div>
+                        <p class="text-sm font-medium text-gray-500">Settings</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-2">Change Password</h3>
                     </div>
                 </div>
 
-                <!-- Tests List -->
+                <!-- Tests Table -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                         <h3 class="font-semibold text-gray-800">Your Tests</h3>
@@ -155,337 +117,236 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="px-6 py-3">Test ID</th>
                                     <th class="px-6 py-3">Title</th>
                                     <th class="px-6 py-3">Created</th>
-                                    <th class="px-6 py-3">Status</th>
                                     <th class="px-6 py-3 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="tests-table-body" class="divide-y divide-gray-100 text-sm">
-                                <!-- Tests Injected Here -->
-                            </tbody>
+                            <tbody id="tests-table-body" class="divide-y divide-gray-100 text-sm"></tbody>
                         </table>
                     </div>
-                    <div id="tests-loading" class="text-center py-8 text-gray-400 hidden">
-                        <i class="fas fa-spinner fa-spin text-2xl"></i>
-                    </div>
+                    <div id="tests-loading" class="text-center py-8 text-gray-400 hidden"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
                 </div>
             </section>
 
-            <!-- VIEW: UPLOAD & MAP -->
+            <!-- VIEW: UPLOAD -->
             <section id="view-create-test" class="hidden max-w-3xl mx-auto fade-in">
-                <button onclick="router('admin-dashboard')" class="text-gray-500 hover:text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </button>
-                
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div class="p-8 border-b border-gray-100">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Create New Test</h2>
-                        
-                        <!-- Step 1: Upload -->
-                        <div id="step-upload" class="space-y-6">
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:bg-gray-50 transition cursor-pointer relative" onclick="document.getElementById('fileInput').click()">
-                                <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-4"></i>
-                                <h3 class="font-medium text-gray-900">Click to upload Excel File</h3>
-                                <p class="text-sm text-gray-500 mt-1">Support .xlsx, .csv (Max 5MB)</p>
-                            </div>
+                <button onclick="router('admin-dashboard')" class="text-gray-500 hover:text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Create New Test</h2>
+                    
+                    <div id="step-upload" class="space-y-6">
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:bg-gray-50 transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                            <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-4"></i>
+                            <h3 class="font-medium text-gray-900">Upload Excel File</h3>
+                            <p class="text-sm text-gray-500 mt-1">.xlsx, .csv (Max 5MB)</p>
                         </div>
+                    </div>
 
-                        <!-- Step 2: Mapping -->
-                        <div id="step-mapping" class="hidden space-y-6">
-                            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-6">
-                                <i class="fas fa-info-circle mr-2"></i> File loaded! Now map your columns.
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Test Title</label>
-                                    <input type="text" id="testTitle" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Minutes)</label>
-                                    <input type="number" id="testDuration" value="30" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Question Column</label>
-                                    <select id="map-question" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Answer Column</label>
-                                    <select id="map-answer" class="w-full px-4 py-2 border rounded-lg bg-white"></select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Option Columns (Multiple)</label>
-                                <div id="map-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <!-- Checkboxes generated here -->
-                                </div>
-                            </div>
-                            
-                            <div class="pt-4">
-                                <button onclick="uploadAndCreate()" id="btn-create" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-all">
-                                    Create Test & Save to Cloud
-                                </button>
-                            </div>
+                    <div id="step-mapping" class="hidden space-y-6">
+                        <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-6">File loaded! Map your columns below.</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-medium mb-1">Title</label><input type="text" id="testTitle" class="w-full px-4 py-2 border rounded-lg"></div>
+                            <div><label class="block text-sm font-medium mb-1">Duration (Mins)</label><input type="number" id="testDuration" value="30" class="w-full px-4 py-2 border rounded-lg"></div>
+                            <div><label class="block text-sm font-medium mb-1">Question Column</label><select id="map-question" class="w-full px-4 py-2 border rounded-lg bg-white"></select></div>
+                            <div><label class="block text-sm font-medium mb-1">Correct Answer Column</label><select id="map-answer" class="w-full px-4 py-2 border rounded-lg bg-white"></select></div>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Option Columns (Check all that apply)</label>
+                            <div id="map-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+                        </div>
+                        <button onclick="uploadAndCreate()" id="btn-create" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md mt-4">Create Test</button>
                     </div>
                 </div>
             </section>
 
-            <!-- VIEW: CANDIDATE INTRO -->
+            <!-- VIEW: INTRO -->
             <section id="view-test-intro" class="hidden max-w-2xl mx-auto text-center fade-in mt-10">
                 <div class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
-                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 text-3xl">
-                        <i class="fas fa-pencil-alt"></i>
-                    </div>
                     <h1 class="text-3xl font-bold text-gray-900 mb-2" id="intro-title">Loading...</h1>
-                    <p class="text-gray-500 mb-8" id="intro-desc">Please wait while we load the test details.</p>
-                    
-                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto mb-8 text-left">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="text-xs text-gray-500 uppercase font-bold">Duration</span>
-                            <p class="text-lg font-semibold text-gray-800"><span id="intro-duration">-</span> Mins</p>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="text-xs text-gray-500 uppercase font-bold">Questions</span>
-                            <p class="text-lg font-semibold text-gray-800" id="intro-qcount">-</p>
-                        </div>
+                    <p class="text-gray-500 mb-8" id="intro-desc">Loading test details...</p>
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto mb-8">
+                        <div class="bg-gray-50 p-4 rounded-lg"><span class="text-xs text-gray-500 uppercase font-bold">Duration</span><p class="text-lg font-semibold"><span id="intro-duration">-</span> Mins</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg"><span class="text-xs text-gray-500 uppercase font-bold">Questions</span><p class="text-lg font-semibold" id="intro-qcount">-</p></div>
                     </div>
-
                     <div class="space-y-4 text-left max-w-md mx-auto">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                            <input type="text" id="candidateName" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="John Doe">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                            <input type="email" id="candidateEmail" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="john@example.com">
-                        </div>
-                        <button onclick="startTest()" id="btn-start" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg transition-transform hover:-translate-y-1 mt-4">
-                            Start Assessment
-                        </button>
-                    </div>
-                    
-                    <div class="mt-6 text-center">
-                        <button onclick="router('home')" class="text-sm text-gray-400 hover:text-gray-600">Back to Home</button>
+                        <input type="text" id="candidateName" class="w-full px-4 py-3 border rounded-lg" placeholder="Full Name">
+                        <input type="email" id="candidateEmail" class="w-full px-4 py-3 border rounded-lg" placeholder="Email Address">
+                        <button onclick="startTest()" id="btn-start" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg">Start Assessment</button>
                     </div>
                 </div>
             </section>
 
-            <!-- VIEW: TEST TAKING -->
-            <section id="view-test-active" class="hidden max-w-4xl mx-auto fade-in">
-                <!-- Header with Timer -->
+            <!-- VIEW: ACTIVE TEST -->
+            <section id="view-test-active" class="hidden max-w-4xl mx-auto fade-in no-select">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex justify-between items-center sticky top-20 z-40">
-                    <div class="flex items-center gap-4">
-                        <span class="text-gray-500 text-sm">Question <span id="q-current">1</span> of <span id="q-total">10</span></span>
-                        <div class="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                            <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 font-mono font-bold text-lg text-slate-800 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
-                        <i class="far fa-clock text-blue-600"></i>
-                        <span id="timer">00:00</span>
-                    </div>
+                    <div><span class="text-gray-500 text-sm">Progress</span> <div class="h-2 w-32 bg-gray-200 rounded-full mt-1 overflow-hidden"><div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div></div></div>
+                    <div class="font-mono font-bold text-lg bg-gray-50 px-3 py-1 rounded-lg border"><i class="far fa-clock text-blue-600"></i> <span id="timer">00:00</span></div>
                 </div>
-
-                <!-- Question Container -->
-                <div id="question-container" class="space-y-6 pb-20">
-                    <!-- Questions injected here -->
-                </div>
-
-                <!-- Footer -->
+                <div id="question-container" class="space-y-6 pb-20"></div>
                 <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg z-50">
                     <div class="max-w-4xl mx-auto flex justify-end">
-                        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors">
-                            Submit Assessment <i class="fas fa-check ml-2"></i>
-                        </button>
+                        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">Submit Assessment</button>
                     </div>
                 </div>
             </section>
 
-            <!-- VIEW: RESULTS -->
+            <!-- VIEW: RESULT -->
             <section id="view-result" class="hidden max-w-md mx-auto text-center fade-in mt-10">
                 <div class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
-                    <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 text-5xl animate-bounce">
-                        <i class="fas fa-trophy"></i>
-                    </div>
+                    <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 text-5xl"><i class="fas fa-trophy"></i></div>
                     <h2 class="text-3xl font-bold text-slate-900 mb-2">Assessment Complete</h2>
-                    <p class="text-gray-500 mb-8">Thank you for your submission.</p>
-                    
-                    <div class="bg-slate-900 text-white p-6 rounded-xl mb-8">
+                    <div class="bg-slate-900 text-white p-6 rounded-xl mb-8 mt-6">
                         <span class="text-sm text-slate-400 uppercase tracking-wider">Your Score</span>
                         <div class="text-5xl font-bold mt-2"><span id="result-score">0</span><span class="text-2xl text-slate-500">/</span><span id="result-total" class="text-2xl text-slate-500">0</span></div>
                     </div>
-                    
                     <button onclick="router('home')" class="text-blue-600 hover:text-blue-800 font-medium">Back to Home</button>
                 </div>
             </section>
-
         </main>
     </div>
 
     <!-- SETTINGS MODAL -->
     <div id="modal-settings" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[60] flex items-center justify-center">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm m-4 shadow-2xl">
-            <div class="text-center mb-4">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 text-blue-600">
-                    <i class="fas fa-key"></i>
-                </div>
-                <h3 class="text-lg font-bold">Change Password</h3>
-                <p class="text-sm text-gray-500" id="modal-desc">Secure your account</p>
-            </div>
+            <h3 class="text-lg font-bold mb-4">Change Password</h3>
             <div class="space-y-3">
-                <input type="password" id="set-old-pass" placeholder="Current Password" class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="password" id="set-new-pass" placeholder="New Password" class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="set-old-pass" placeholder="Current Password" class="w-full border p-3 rounded-lg">
+                <input type="password" id="set-new-pass" placeholder="New Password" class="w-full border p-3 rounded-lg">
                 <div class="flex justify-end gap-2 mt-4">
-                    <button id="btn-cancel-pass" onclick="document.getElementById('modal-settings').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:text-gray-800">Cancel</button>
-                    <button onclick="changePassword()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow">Save</button>
+                    <button onclick="document.getElementById('modal-settings').classList.add('hidden')" class="px-4 py-2 text-gray-500">Cancel</button>
+                    <button onclick="changePassword()" class="px-6 py-2 bg-blue-600 text-white rounded-lg">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
         // ==========================================
         // ⚠️ PASTE YOUR NEW WEB APP URL HERE
         // ==========================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwnwAvHRVdWJ0RkVuMiHeRIkUO2FJNNhIDMnPZGORldYNPfdtRaYCcIGkBbbMJQWFQ-/exec'; 
+        const API_URL = 'PASTE_YOUR_WEB_APP_URL_HERE'; 
 
-        // STATE
         let currentUser = null;
-        let currentExcelData = null; // Holds parsed Excel headers/rows
+        let currentExcelData = null;
         let currentTest = null;
         let userAnswers = {};
         let testTimerInterval = null;
 
-        // --- ROUTER ---
         function init() {
-            // Check for test ID in URL
             const params = new URLSearchParams(window.location.search);
             const testId = params.get('test');
-            
-            if (testId) {
-                loadTest(testId);
-            } else {
-                router('home');
-            }
+            if (testId) loadTest(testId);
+            else router('home');
         }
 
         function router(viewName) {
-            // Hide all views
             document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-            
-            // Logic for specific views
             if (viewName === 'home') {
-                if (currentUser) {
-                    router('admin-dashboard');
-                } else {
-                    document.getElementById('view-login').classList.remove('hidden');
-                }
+                if (currentUser) router('admin-dashboard');
+                else document.getElementById('view-login').classList.remove('hidden');
             } 
             else if (viewName === 'admin-dashboard') {
                 if (!currentUser) return router('home');
                 document.getElementById('view-admin-dashboard').classList.remove('hidden');
                 fetchTests();
             }
-            else if (viewName === 'create-test') {
-                document.getElementById('view-create-test').classList.remove('hidden');
-            }
-            else {
-                const el = document.getElementById(`view-${viewName}`);
-                if (el) el.classList.remove('hidden');
-            }
+            else if (viewName === 'create-test') document.getElementById('view-create-test').classList.remove('hidden');
+            else document.getElementById(`view-${viewName}`).classList.remove('hidden');
         }
 
-        // --- AUTH ---
         async function handleLogin(e) {
             e.preventDefault();
             const pass = document.getElementById('adminPass').value;
             showToast('Verifying...');
-            
             try {
                 const res = await callApi({ action: 'login', password: pass });
                 if (res.result === 'success') {
                     currentUser = 'ADMIN';
-                    
-                    // FORCE CHANGE PASSWORD IF DEFAULT
-                    if (pass === 'admin123') {
-                        showToast('Security Alert: Change Default Password');
-                        // Show modal, prefill old password, hide cancel button
-                        document.getElementById('set-old-pass').value = 'admin123';
-                        document.getElementById('modal-desc').innerText = "For security, you must change the default password.";
-                        document.getElementById('btn-cancel-pass').style.display = 'none'; // Cannot cancel
-                        showSettingsModal();
-                    } else {
-                        showToast('Welcome back, Admin!');
-                        router('admin-dashboard');
-                    }
+                    showToast('Welcome back, Admin!');
                     updateNav();
+                    router('admin-dashboard');
                 } else {
                     showToast('Invalid Password', true);
                 }
-            } catch (err) {
-                showToast('Login failed', true);
-            }
+            } catch (err) { showToast('Login failed', true); }
         }
 
         function handleCandidateEntry(e) {
             e.preventDefault();
             let input = document.getElementById('testIdInput').value.trim();
             if(!input) return showToast('Please enter a Test ID', true);
-            
-            // Handle full URL paste
+            // Support full URLs if pasted
             if (input.includes('test=')) {
-                try {
-                    const url = new URL(input);
-                    input = url.searchParams.get('test');
-                } catch(e) {}
+                try { input = new URL(input).searchParams.get('test'); } catch(e) {}
             }
-            
             loadTest(input);
         }
 
         function updateNav() {
             const nav = document.getElementById('nav-links');
-            if (currentUser) {
-                nav.innerHTML = `<button onclick="logout()" class="text-gray-300 hover:text-white font-medium">Logout <i class="fas fa-sign-out-alt ml-1"></i></button>`;
-            } else {
-                nav.innerHTML = '';
-            }
+            nav.innerHTML = currentUser ? `<button onclick="logout()" class="text-gray-300 hover:text-white">Logout</button>` : '';
         }
 
         function logout() {
             currentUser = null;
             document.getElementById('adminPass').value = '';
-            showToast('Logged out successfully');
             router('home');
             updateNav();
         }
 
-        // --- EXCEL PARSING ---
+        // --- DASHBOARD & STATS ---
+        async function fetchTests() {
+            const tbody = document.getElementById('tests-table-body');
+            const loading = document.getElementById('tests-loading');
+            tbody.innerHTML = '';
+            loading.classList.remove('hidden');
+            
+            try {
+                // Fetch Stats in parallel or sequence. Ideally one call, but let's do two for simplicity of router
+                const stats = await callApi({ action: 'get_stats' }, 'GET');
+                document.getElementById('stat-tests').innerText = stats.tests;
+                document.getElementById('stat-subs').innerText = stats.submissions;
+
+                const tests = await callApi({ action: 'get_tests' }, 'GET');
+                loading.classList.add('hidden');
+                
+                tests.forEach(t => {
+                    // Link with Short ID
+                    const link = window.location.href.split('?')[0] + '?test=' + t.id;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                            <td class="px-6 py-4 font-mono font-bold text-blue-600">
+                                ${t.id} 
+                                <button onclick="copyLink('${t.id}')" class="ml-2 text-gray-400 hover:text-blue-600"><i class="far fa-copy"></i></button>
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900">${t.title}</td>
+                            <td class="px-6 py-4 text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</td>
+                            <td class="px-6 py-4 text-right space-x-2">
+                                <button onclick="copyLink('${link}')" class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-xs border border-blue-200">Copy Link</button>
+                                <button onclick="downloadResults('${t.id}')" class="text-gray-500 hover:text-green-600 px-2" title="Results"><i class="fas fa-download"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                loading.innerHTML = '<span class="text-red-500">Error loading data. Check spreadsheet ID.</span>';
+            }
+        }
+
+        // --- EXCEL & CREATION ---
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                // Convert to JSON (Header: 1 returns array of arrays)
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                
-                if (jsonData.length < 2) {
-                    showToast('File is empty or invalid', true);
-                    return;
-                }
-
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                if (jsonData.length < 2) return showToast('File empty or invalid', true);
                 currentExcelData = jsonData;
-                showMappingUI(jsonData[0]); // Pass headers
+                showMappingUI(jsonData[0]);
             };
             reader.readAsArrayBuffer(file);
         }
@@ -493,29 +354,19 @@
         function showMappingUI(headers) {
             document.getElementById('step-upload').classList.add('hidden');
             document.getElementById('step-mapping').classList.remove('hidden');
-            
             const qSelect = document.getElementById('map-question');
             const aSelect = document.getElementById('map-answer');
             const optDiv = document.getElementById('map-options');
+            qSelect.innerHTML = aSelect.innerHTML = optDiv.innerHTML = '';
             
-            qSelect.innerHTML = '';
-            aSelect.innerHTML = '';
-            optDiv.innerHTML = '';
-            
-            headers.forEach((h, index) => {
-                const option = `<option value="${index}">${h}</option>`;
-                qSelect.innerHTML += option;
-                aSelect.innerHTML += option;
-                
-                optDiv.innerHTML += `
-                    <label class="flex items-center space-x-2 text-sm bg-white p-2 rounded border">
-                        <input type="checkbox" class="opt-check rounded text-blue-600" value="${index}">
-                        <span class="truncate font-medium" title="${h}">${h}</span>
-                    </label>
-                `;
+            headers.forEach((h, i) => {
+                const opt = `<option value="${i}">${h}</option>`;
+                qSelect.innerHTML += opt;
+                aSelect.innerHTML += opt;
+                optDiv.innerHTML += `<label class="flex items-center space-x-2 text-sm bg-white p-2 rounded border"><input type="checkbox" class="opt-check rounded text-blue-600" value="${i}"><span class="truncate font-medium">${h}</span></label>`;
             });
             
-            // Auto-guess columns
+            // Auto-guess
             headers.forEach((h, i) => {
                 const lower = h.toString().toLowerCase();
                 if (lower.includes('question')) qSelect.value = i;
@@ -525,318 +376,178 @@
 
         async function uploadAndCreate() {
             const btn = document.getElementById('btn-create');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-            btn.disabled = true;
+            btn.innerHTML = 'Uploading...'; btn.disabled = true;
             
-            // 1. Get Mapping
             const mapping = {
                 questionIndex: parseInt(document.getElementById('map-question').value),
                 answerIndex: parseInt(document.getElementById('map-answer').value),
                 optionsIndices: Array.from(document.querySelectorAll('.opt-check:checked')).map(cb => parseInt(cb.value))
             };
-            
+
             if (mapping.optionsIndices.length === 0) {
-                showToast('Please select at least one option column', true);
-                btn.innerHTML = 'Create Test';
-                btn.disabled = false;
+                showToast('Select option columns', true);
+                btn.innerHTML = 'Create Test'; btn.disabled = false;
                 return;
             }
 
             try {
-                // 2. Upload Data to create new Sheet
-                showToast('Creating Database Sheet...');
                 const uploadRes = await callApi({
                     action: 'upload_data',
                     fileName: document.getElementById('fileInput').files[0].name,
                     rows: currentExcelData
                 });
                 
-                // 3. Create Test Record
-                showToast('Configuring Test...');
-                const createRes = await callApi({
+                await callApi({
                     action: 'create_test',
-                    title: document.getElementById('testTitle').value || 'Untitled Test',
-                    description: 'Generated from Excel',
+                    title: document.getElementById('testTitle').value || 'Untitled',
+                    description: 'Imported',
                     duration: document.getElementById('testDuration').value,
                     sourceSheetId: uploadRes.sheetId,
                     mapping: mapping
                 });
                 
-                showToast('Success! Test Created.');
+                showToast('Test Created!');
                 router('admin-dashboard');
-                
-            } catch (err) {
-                console.error(err);
-                showToast('Error creating test', true);
-            } finally {
-                btn.innerHTML = 'Create Test';
-                btn.disabled = false;
-            }
+            } catch (err) { showToast('Error creating test', true); }
+            btn.innerHTML = 'Create Test'; btn.disabled = false;
         }
 
-        // --- DASHBOARD ---
-        async function fetchTests() {
-            const tbody = document.getElementById('tests-table-body');
-            const loading = document.getElementById('tests-loading');
-            tbody.innerHTML = '';
-            loading.classList.remove('hidden');
-            
-            try {
-                const tests = await callApi({ action: 'get_tests' }, 'GET');
-                loading.classList.add('hidden');
-                
-                document.getElementById('stat-tests').innerText = tests.length;
-                
-                tests.forEach(t => {
-                    const link = window.location.href.split('?')[0] + '?test=' + t.id;
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">${t.title}</td>
-                            <td class="px-6 py-4 text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</td>
-                            <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">${t.status}</span></td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <button onclick="window.open('${link}', '_blank')" class="text-purple-600 hover:text-purple-900 text-xs font-bold border border-purple-200 px-3 py-1 rounded-lg hover:bg-purple-50" title="Preview as Candidate">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="copyLink('${link}')" class="text-blue-600 hover:text-blue-900 text-xs font-bold border border-blue-200 px-3 py-1 rounded-lg hover:bg-blue-50">
-                                    <i class="fas fa-link mr-1"></i> Copy
-                                </button>
-                                <button onclick="downloadResults('${t.id}')" class="text-gray-500 hover:text-green-600 px-2" title="Download Results">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (err) {
-                loading.innerHTML = 'Error loading tests';
-            }
-        }
-
-        async function downloadResults(testId) {
-            showToast('Fetching results...');
-            const results = await callApi({ action: 'get_results', testId: testId });
-            
-            if (results.length === 0) {
-                showToast('No submissions yet', true);
-                return;
-            }
-            
-            // Create Excel
-            const ws = XLSX.utils.json_to_sheet(results);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Submissions");
-            XLSX.writeFile(wb, `Results_${testId}.xlsx`);
-        }
-
-        // --- CANDIDATE FLOW ---
+        // --- TEST LOGIC ---
         async function loadTest(testId) {
             router('test-intro');
             try {
                 const res = await callApi({ action: 'get_test_details', id: testId }, 'GET');
                 if (res.error) throw new Error(res.error);
-                
                 currentTest = res;
-                currentTest.id = testId;
+                currentTest.id = testId; // Store for submit
                 
                 document.getElementById('intro-title').innerText = res.meta.title;
                 document.getElementById('intro-duration').innerText = res.meta.duration;
                 document.getElementById('intro-qcount').innerText = res.questions.length;
-                
             } catch (err) {
                 document.getElementById('intro-title').innerText = 'Test Not Found';
-                document.getElementById('intro-desc').innerText = 'The link might be invalid or expired.';
                 document.getElementById('btn-start').classList.add('hidden');
             }
         }
 
         function startTest() {
             const name = document.getElementById('candidateName').value;
-            if (!name) return showToast('Please enter your name', true);
-            
-            currentTest.candidate = {
-                name: name,
-                email: document.getElementById('candidateEmail').value
-            };
-            
+            if (!name) return showToast('Enter name', true);
+            currentTest.candidate = { name: name, email: document.getElementById('candidateEmail').value };
             renderQuestions();
             router('test-active');
             startTimer(currentTest.meta.duration);
         }
 
         function renderQuestions() {
-            const container = document.getElementById('question-container');
-            container.innerHTML = '';
-            document.getElementById('q-total').innerText = currentTest.questions.length;
-            
-            currentTest.questions.forEach((q, index) => {
-                let optionsHtml = '';
+            const c = document.getElementById('question-container');
+            c.innerHTML = '';
+            currentTest.questions.forEach((q, i) => {
+                let opts = '';
                 q.options.forEach(opt => {
-                    optionsHtml += `
-                        <label class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                            <input type="radio" name="q_${q.id}" value="${opt}" onchange="recordAnswer(${q.id}, '${opt}')" class="h-5 w-5 text-blue-600">
-                            <span class="text-gray-700">${opt}</span>
-                        </label>
-                    `;
+                    opts += `<label class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                        <input type="radio" name="q_${q.id}" value="${opt}" onchange="userAnswers[${q.id}] = this.value; updateProgress()" class="h-5 w-5 text-blue-600">
+                        <span class="text-gray-700">${opt}</span>
+                    </label>`;
                 });
-                
-                container.innerHTML += `
-                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm" id="q-card-${index}">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4"><span class="text-blue-500 mr-2">Q${index+1}.</span> ${q.text}</h3>
-                        <div class="space-y-3">
-                            ${optionsHtml}
-                        </div>
-                    </div>
-                `;
+                c.innerHTML += `<div class="bg-white p-6 rounded-xl border border-gray-100"><h3 class="text-lg font-semibold mb-4 text-slate-800"><span class="text-blue-500 mr-2">Q${i+1}.</span> ${q.text}</h3><div class="space-y-3">${opts}</div></div>`;
             });
         }
 
-        function recordAnswer(qId, val) {
-            userAnswers[qId] = val;
-            
-            // Update Progress
-            const total = currentTest.questions.length;
-            const answered = Object.keys(userAnswers).length;
-            const pct = (answered / total) * 100;
+        function updateProgress() {
+            const pct = (Object.keys(userAnswers).length / currentTest.questions.length) * 100;
             document.getElementById('progress-bar').style.width = pct + '%';
         }
 
-        function startTimer(minutes) {
-            let seconds = minutes * 60;
-            const display = document.getElementById('timer');
-            
+        function startTimer(mins) {
+            let secs = mins * 60;
+            const d = document.getElementById('timer');
             testTimerInterval = setInterval(() => {
-                seconds--;
-                const m = Math.floor(seconds / 60);
-                const s = seconds % 60;
-                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                
-                if (seconds <= 300) display.classList.add('text-red-600'); // Warning
-                
-                if (seconds <= 0) {
-                    clearInterval(testTimerInterval);
-                    showToast('Time is up! Submitting...', true);
-                    submitTest();
-                }
+                secs--;
+                d.innerText = `${Math.floor(secs/60).toString().padStart(2,'0')}:${(secs%60).toString().padStart(2,'0')}`;
+                if (secs <= 300) d.classList.add('text-red-600');
+                if (secs <= 0) { clearInterval(testTimerInterval); submitTest(); }
             }, 1000);
         }
 
         async function submitTest() {
             clearInterval(testTimerInterval);
+            let score = 0, total = 0;
             
-            // Calculate Score
-            let score = 0;
-            let total = 0;
-            
+            // SCORING FIX: Trim strings before comparing
             currentTest.questions.forEach(q => {
                 total += q.points;
-                if (userAnswers[q.id] == q.correctAnswer) {
+                const userAns = String(userAnswers[q.id] || '').trim();
+                const correct = String(q.correctAnswer || '').trim();
+                
+                // Case-insensitive check just in case
+                if (userAns.toLowerCase() === correct.toLowerCase()) {
                     score += q.points;
                 }
             });
+
+            await callApi({
+                action: 'submit_test',
+                testId: currentTest.id,
+                candidateName: currentTest.candidate.name,
+                candidateEmail: currentTest.candidate.email,
+                score: score,
+                totalPoints: total,
+                answers: userAnswers
+            });
             
-            // Submit to Backend
-            try {
-                await callApi({
-                    action: 'submit_test',
-                    testId: currentTest.id,
-                    candidateName: currentTest.candidate.name,
-                    candidateEmail: currentTest.candidate.email,
-                    score: score,
-                    totalPoints: total,
-                    answers: userAnswers
-                });
-                
-                document.getElementById('result-score').innerText = score;
-                document.getElementById('result-total').innerText = total;
-                router('result');
-                
-            } catch (err) {
-                showToast('Error submitting. Please try again.', true);
-            }
+            document.getElementById('result-score').innerText = score;
+            document.getElementById('result-total').innerText = total;
+            router('result');
         }
 
         // --- UTILS ---
-        function showToast(msg, isError = false) {
+        function showToast(msg, err=false) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            document.getElementById('toast-icon').className = isError ? 'fas fa-exclamation-circle text-red-400' : 'fas fa-info-circle text-blue-400';
-            
+            document.getElementById('toast-icon').className = err ? 'fas fa-exclamation-circle text-red-400' : 'fas fa-info-circle text-blue-400';
             t.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
-        
-        function copyLink(text) {
-            navigator.clipboard.writeText(text);
-            showToast('Link copied to clipboard!');
-        }
 
-        async function callApi(data, method = 'POST') {
-            if (API_URL.includes('PASTE_YOUR')) {
-                alert('Please configure the API_URL in the code first!');
-                throw new Error('Config missing');
-            }
-            
-            // For GET requests with GAS, we typically use query params
-            // For POST, we use the body. 
-            // Note: GAS CORS handling is tricky. We use text/plain and no-cors usually,
-            // but for reading data we need cors.
-            
-            const options = {
-                method: method,
-            };
-            
-            let url = API_URL;
-            
-            if (method === 'POST') {
-                options.body = JSON.stringify(data);
-                options.headers = { 'Content-Type': 'text/plain' }; // Avoids Preflight
-            } else {
-                // Convert data object to query string
-                const params = new URLSearchParams(data).toString();
-                url += '?' + params;
-            }
+        function copyLink(txt) { navigator.clipboard.writeText(txt); showToast('Copied!'); }
 
-            const res = await fetch(url, options);
-            return await res.json();
-        }
-
-        // --- SETTINGS ---
-        function showSettingsModal() {
-            // If forced, hide cancel
-            if (document.getElementById('btn-cancel-pass').style.display !== 'none') {
-                document.getElementById('set-old-pass').value = '';
-                document.getElementById('modal-desc').innerText = "Secure your account";
-            }
-            document.getElementById('modal-settings').classList.remove('hidden');
+        async function downloadResults(tid) {
+            const res = await callApi({ action: 'get_results', testId: tid });
+            if (!res.length) return showToast('No results', true);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(res), "Results");
+            XLSX.writeFile(wb, `Results_${tid}.xlsx`);
         }
 
         async function changePassword() {
             const oldP = document.getElementById('set-old-pass').value;
             const newP = document.getElementById('set-new-pass').value;
-            
-            if(!oldP || !newP) return showToast('Fill all fields', true);
+            const res = await callApi({ action: 'change_password', oldPassword: oldP, newPassword: newP });
+            if (res.result === 'success') {
+                showToast('Password Changed');
+                document.getElementById('modal-settings').classList.add('hidden');
+            } else showToast(res.error, true);
+        }
 
-            try {
-                const res = await callApi({ action: 'change_password', oldPassword: oldP, newPassword: newP });
-                if (res.result === 'success') {
-                    showToast('Password changed!');
-                    document.getElementById('modal-settings').classList.add('hidden');
-                    document.getElementById('btn-cancel-pass').style.display = 'block'; // Reset cancel button for future
-                    
-                    // If this was the first login flow, redirect to dashboard now
-                    if (currentUser === 'ADMIN') {
-                        router('admin-dashboard');
-                    }
-                } else {
-                    showToast(res.error, true);
-                }
-            } catch (e) { showToast('Error', true); }
+        async function callApi(data, method='POST') {
+            if (API_URL.includes('PASTE')) return alert('Please set API_URL in code');
+            let url = API_URL;
+            const opts = { method: method };
+            if (method === 'POST') {
+                opts.body = JSON.stringify(data);
+                opts.headers = { 'Content-Type': 'text/plain' };
+            } else {
+                url += '?' + new URLSearchParams(data);
+                opts.redirect = 'follow';
+            }
+            const res = await fetch(url, opts);
+            return await res.json();
         }
 
         // Start
         init();
-
+        function showSettingsModal() { document.getElementById('modal-settings').classList.remove('hidden'); }
     </script>
 </body>
 </html>
